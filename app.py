@@ -311,7 +311,6 @@ def main():
         
         # Options for Date and Time Toggles
         month_options = [calendar.month_abbr[i] for i in range(1, 13)]
-        day_options = [str(i).zfill(2) for i in range(1, 32)]
         hour_options = [str(i).zfill(2) for i in range(24)]
         minute_options = [str(i).zfill(2) for i in range(0, 60, 5)] # 5-minute increments
         
@@ -328,7 +327,15 @@ def main():
                 start_year = st.number_input("Year", min_value=2000, max_value=2100, value=yesterday.year, key="sy")
                 
             start_month_str = st.segmented_control("Month", month_options, default=calendar.month_abbr[yesterday.month], key="smo")
-            start_day_str = st.segmented_control("Day", day_options, default=str(yesterday.day).zfill(2), key="sda")
+            
+            # Dynamically calculate the number of days based on the selected year and month
+            start_month_num = list(calendar.month_abbr).index(start_month_str) if start_month_str else yesterday.month
+            start_max_days = calendar.monthrange(start_year, start_month_num)[1]
+            start_day_options = [str(i).zfill(2) for i in range(1, start_max_days + 1)]
+            
+            # Snap to maximum valid day if previous selection exceeds new month's limit
+            current_start_day = min(yesterday.day, start_max_days)
+            start_day_str = st.segmented_control("Day", start_day_options, default=str(current_start_day).zfill(2), key="sda")
             
             st.markdown("**Start Time (24h)**")
             
@@ -358,7 +365,15 @@ def main():
                 end_year = st.number_input("Year", min_value=2000, max_value=2100, value=today.year, key="ey")
                 
             end_month_str = st.segmented_control("Month", month_options, default=calendar.month_abbr[today.month], key="emo")
-            end_day_str = st.segmented_control("Day", day_options, default=str(today.day).zfill(2), key="eda")
+            
+            # Dynamically calculate the number of days based on the selected year and month
+            end_month_num = list(calendar.month_abbr).index(end_month_str) if end_month_str else today.month
+            end_max_days = calendar.monthrange(end_year, end_month_num)[1]
+            end_day_options = [str(i).zfill(2) for i in range(1, end_max_days + 1)]
+            
+            # Snap to maximum valid day if previous selection exceeds new month's limit
+            current_end_day = min(today.day, end_max_days)
+            end_day_str = st.segmented_control("Day", end_day_options, default=str(current_end_day).zfill(2), key="eda")
             
             st.markdown("**End Time (24h)**")
             
