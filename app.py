@@ -308,43 +308,76 @@ def main():
         st.header("⏳ Time Interval Duration Calculator")
         st.markdown("Calculate the exact duration (days, hours, minutes) between two dates and times. Useful for determining elapsed clinical time.")
         
+        # Options for Date and Time Toggles
+        month_options = [str(i).zfill(2) for i in range(1, 13)]
+        day_options = [str(i).zfill(2) for i in range(1, 32)]
+        hour_options = [str(i).zfill(2) for i in range(24)]
+        minute_options = [str(i).zfill(2) for i in range(0, 60, 5)] # 5-minute increments
+        
         col_start, col_end = st.columns(2)
         
         with col_start:
             st.subheader("Start Time")
-            start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1), format="MM/DD/YYYY")
+            
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+            
+            st.markdown("**Start Date**")
+            s_year_col, _ = st.columns([1, 2])
+            with s_year_col:
+                start_year = st.number_input("Year", min_value=2000, max_value=2100, value=yesterday.year, key="sy")
+                
+            start_month_str = st.segmented_control("Month", month_options, default=str(yesterday.month).zfill(2), key="smo")
+            start_day_str = st.segmented_control("Day", day_options, default=str(yesterday.day).zfill(2), key="sda")
             
             st.markdown("**Start Time (24h)**")
-            
-            # Use Toggle Buttons for Hours and Minutes (0-23 and 0-59 with 5min steps for UI clarity)
-            hour_options = [str(i).zfill(2) for i in range(24)]
-            minute_options = [str(i).zfill(2) for i in range(0, 60, 5)] # 5-minute increments for cleaner UI
             
             start_hour_str = st.segmented_control("Hour", hour_options, default="08", key="sh")
             start_min_str = st.segmented_control("Minute", minute_options, default="00", key="sm")
             
+            try:
+                start_month = int(start_month_str) if start_month_str else yesterday.month
+                start_day = int(start_day_str) if start_day_str else yesterday.day
+                start_date = datetime.date(start_year, start_month, start_day)
+            except ValueError:
+                st.error("⚠️ Invalid Start Date (e.g. Feb 30). Defaulting to 1st of month.")
+                start_date = datetime.date(start_year, start_month, 1)
+
             start_hour = int(start_hour_str) if start_hour_str else 0
             start_minute = int(start_min_str) if start_min_str else 0
-            
             start_time = datetime.time(start_hour, start_minute)
             
         with col_end:
             st.subheader("End Time")
-            end_date = st.date_input("End Date", value=datetime.date.today(), format="MM/DD/YYYY")
+            
+            today = datetime.date.today()
+            
+            st.markdown("**End Date**")
+            e_year_col, _ = st.columns([1, 2])
+            with e_year_col:
+                end_year = st.number_input("Year", min_value=2000, max_value=2100, value=today.year, key="ey")
+                
+            end_month_str = st.segmented_control("Month", month_options, default=str(today.month).zfill(2), key="emo")
+            end_day_str = st.segmented_control("Day", day_options, default=str(today.day).zfill(2), key="eda")
             
             st.markdown("**End Time (24h)**")
             
             now_hour = str(datetime.datetime.now().hour).zfill(2)
-            # Find nearest 5-minute increment for current time default
             now_min_val = (datetime.datetime.now().minute // 5) * 5
             now_min = str(now_min_val).zfill(2)
 
             end_hour_str = st.segmented_control("Hour", hour_options, default=now_hour, key="eh")
             end_min_str = st.segmented_control("Minute", minute_options, default=now_min, key="em")
             
+            try:
+                end_month = int(end_month_str) if end_month_str else today.month
+                end_day = int(end_day_str) if end_day_str else today.day
+                end_date = datetime.date(end_year, end_month, end_day)
+            except ValueError:
+                st.error("⚠️ Invalid End Date (e.g. Feb 30). Defaulting to 1st of month.")
+                end_date = datetime.date(end_year, end_month, 1)
+            
             end_hour = int(end_hour_str) if end_hour_str else datetime.datetime.now().hour
             end_minute = int(end_min_str) if end_min_str else now_min_val
-            
             end_time = datetime.time(end_hour, end_minute)
             
         st.divider()
