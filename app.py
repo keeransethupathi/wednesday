@@ -314,7 +314,7 @@ def main():
             st.subheader("Start Time")
             start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1), format="MM/DD/YYYY")
             
-            st.markdown("**Start Time (Railway 24h)**")
+            st.markdown("**Start Time (24h)**")
             
             # Use Toggle Buttons for Hours and Minutes (0-23 and 0-59 with 5min steps for UI clarity)
             hour_options = [str(i).zfill(2) for i in range(24)]
@@ -332,7 +332,7 @@ def main():
             st.subheader("End Time")
             end_date = st.date_input("End Date", value=datetime.date.today(), format="MM/DD/YYYY")
             
-            st.markdown("**End Time (Railway 24h)**")
+            st.markdown("**End Time (24h)**")
             
             now_hour = str(datetime.datetime.now().hour).zfill(2)
             # Find nearest 5-minute increment for current time default
