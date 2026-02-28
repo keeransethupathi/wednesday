@@ -312,13 +312,27 @@ def main():
         
         with col_start:
             st.subheader("Start Time")
-            start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1))
-            start_time = st.time_input("Start Time", value=datetime.time(8, 0))
+            start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1), format="MM/DD/YYYY")
+            
+            st.markdown("**Start Time (Railway 24h)**")
+            t_col1, t_col2 = st.columns(2)
+            with t_col1:
+                start_hour = st.number_input("Hour (0-23)", min_value=0, max_value=23, value=8, format="%d", key="sh")
+            with t_col2:
+                start_minute = st.number_input("Minute (0-59)", min_value=0, max_value=59, value=0, format="%d", key="sm")
+            start_time = datetime.time(start_hour, start_minute)
             
         with col_end:
             st.subheader("End Time")
-            end_date = st.date_input("End Date", value=datetime.date.today())
-            end_time = st.time_input("End Time", value=datetime.datetime.now().time())
+            end_date = st.date_input("End Date", value=datetime.date.today(), format="MM/DD/YYYY")
+            
+            st.markdown("**End Time (Railway 24h)**")
+            t_col3, t_col4 = st.columns(2)
+            with t_col3:
+                end_hour = st.number_input("Hour (0-23)", min_value=0, max_value=23, value=datetime.datetime.now().hour, format="%d", key="eh")
+            with t_col4:
+                end_minute = st.number_input("Minute (0-59)", min_value=0, max_value=59, value=datetime.datetime.now().minute, format="%d", key="em")
+            end_time = datetime.time(end_hour, end_minute)
             
         st.divider()
         
