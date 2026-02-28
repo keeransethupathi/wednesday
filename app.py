@@ -1,4 +1,5 @@
 import streamlit as st
+import datetime
 
 st.set_page_config(
     page_title="SOFA Score Calculator",
@@ -27,7 +28,7 @@ def main():
     st.title("⚕️ Medical Calculator & Tools")
     
     # Create Layout Tabs
-    tab1, tab2 = st.tabs(["sofa scale calculator", "show only drug extractor"])
+    tab1, tab2, tab3 = st.tabs(["sofa scale calculator", "show only drug extractor", "time interval"])
     
     with tab1:
         st.header("Sequential Organ Failure Assessment (SOFA) Score")
@@ -302,6 +303,49 @@ def main():
                     st.dataframe(extracted_results, use_container_width=True, hide_index=True)
                 else:
                     st.info("No common drugs from our database were detected in the text. Try using generic names (e.g., 'lisinopril' instead of 'Prinivil').")
+
+    with tab3:
+        st.header("⏳ Time Interval Duration Calculator")
+        st.markdown("Calculate the exact duration (days, hours, minutes) between two dates and times. Useful for determining elapsed clinical time.")
+        
+        col_start, col_end = st.columns(2)
+        
+        with col_start:
+            st.subheader("Start Time")
+            start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1))
+            start_time = st.time_input("Start Time", value=datetime.time(8, 0))
+            
+        with col_end:
+            st.subheader("End Time")
+            end_date = st.date_input("End Date", value=datetime.date.today())
+            end_time = st.time_input("End Time", value=datetime.datetime.now().time())
+            
+        st.divider()
+        
+        # Combine date and time
+        start_datetime = datetime.datetime.combine(start_date, start_time)
+        end_datetime = datetime.datetime.combine(end_date, end_time)
+        
+        if end_datetime < start_datetime:
+            st.error("⚠️ End time must be after the start time!")
+        else:
+            duration = end_datetime - start_datetime
+            
+            # Calculate components
+            total_seconds = int(duration.total_seconds())
+            days = duration.days
+            hours, remainder = divmod(total_seconds - (days * 86400), 3600)
+            minutes, seconds = divmod(remainder, 60)
+            
+            total_hours = total_seconds / 3600
+            total_minutes = total_seconds / 60
+            
+            st.metric(label="Total Elapsed Duration", value=f"{days} days, {hours} hours, {minutes} minutes")
+            
+            st.markdown("### Alternatively:")
+            st.write(f"- **{total_hours:,.2f}** total hours")
+            st.write(f"- **{total_minutes:,.0f}** total minutes")
+            st.write(f"- **{total_seconds:,}** total seconds")
 
 if __name__ == "__main__":
     main()
