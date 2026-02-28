@@ -315,11 +315,17 @@ def main():
             start_date = st.date_input("Start Date", value=datetime.date.today() - datetime.timedelta(days=1), format="MM/DD/YYYY")
             
             st.markdown("**Start Time (Railway 24h)**")
-            t_col1, t_col2 = st.columns(2)
-            with t_col1:
-                start_hour = st.number_input("Hour (0-23)", min_value=0, max_value=23, value=8, format="%d", key="sh")
-            with t_col2:
-                start_minute = st.number_input("Minute (0-59)", min_value=0, max_value=59, value=0, format="%d", key="sm")
+            
+            # Use Toggle Buttons for Hours and Minutes (0-23 and 0-59 with 5min steps for UI clarity)
+            hour_options = [str(i).zfill(2) for i in range(24)]
+            minute_options = [str(i).zfill(2) for i in range(0, 60, 5)] # 5-minute increments for cleaner UI
+            
+            start_hour_str = st.segmented_control("Hour", hour_options, default="08", key="sh")
+            start_min_str = st.segmented_control("Minute", minute_options, default="00", key="sm")
+            
+            start_hour = int(start_hour_str) if start_hour_str else 0
+            start_minute = int(start_min_str) if start_min_str else 0
+            
             start_time = datetime.time(start_hour, start_minute)
             
         with col_end:
@@ -327,11 +333,18 @@ def main():
             end_date = st.date_input("End Date", value=datetime.date.today(), format="MM/DD/YYYY")
             
             st.markdown("**End Time (Railway 24h)**")
-            t_col3, t_col4 = st.columns(2)
-            with t_col3:
-                end_hour = st.number_input("Hour (0-23)", min_value=0, max_value=23, value=datetime.datetime.now().hour, format="%d", key="eh")
-            with t_col4:
-                end_minute = st.number_input("Minute (0-59)", min_value=0, max_value=59, value=datetime.datetime.now().minute, format="%d", key="em")
+            
+            now_hour = str(datetime.datetime.now().hour).zfill(2)
+            # Find nearest 5-minute increment for current time default
+            now_min_val = (datetime.datetime.now().minute // 5) * 5
+            now_min = str(now_min_val).zfill(2)
+
+            end_hour_str = st.segmented_control("Hour", hour_options, default=now_hour, key="eh")
+            end_min_str = st.segmented_control("Minute", minute_options, default=now_min, key="em")
+            
+            end_hour = int(end_hour_str) if end_hour_str else datetime.datetime.now().hour
+            end_minute = int(end_min_str) if end_min_str else now_min_val
+            
             end_time = datetime.time(end_hour, end_minute)
             
         st.divider()
