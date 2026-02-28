@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import calendar
 
 st.set_page_config(
     page_title="SOFA Score Calculator",
@@ -309,7 +310,7 @@ def main():
         st.markdown("Calculate the exact duration (days, hours, minutes) between two dates and times. Useful for determining elapsed clinical time.")
         
         # Options for Date and Time Toggles
-        month_options = [str(i).zfill(2) for i in range(1, 13)]
+        month_options = [calendar.month_abbr[i] for i in range(1, 13)]
         day_options = [str(i).zfill(2) for i in range(1, 32)]
         hour_options = [str(i).zfill(2) for i in range(24)]
         minute_options = [str(i).zfill(2) for i in range(0, 60, 5)] # 5-minute increments
@@ -326,7 +327,7 @@ def main():
             with s_year_col:
                 start_year = st.number_input("Year", min_value=2000, max_value=2100, value=yesterday.year, key="sy")
                 
-            start_month_str = st.segmented_control("Month", month_options, default=str(yesterday.month).zfill(2), key="smo")
+            start_month_str = st.segmented_control("Month", month_options, default=calendar.month_abbr[yesterday.month], key="smo")
             start_day_str = st.segmented_control("Day", day_options, default=str(yesterday.day).zfill(2), key="sda")
             
             st.markdown("**Start Time (24h)**")
@@ -335,7 +336,7 @@ def main():
             start_min_str = st.segmented_control("Minute", minute_options, default="00", key="sm")
             
             try:
-                start_month = int(start_month_str) if start_month_str else yesterday.month
+                start_month = list(calendar.month_abbr).index(start_month_str) if start_month_str else yesterday.month
                 start_day = int(start_day_str) if start_day_str else yesterday.day
                 start_date = datetime.date(start_year, start_month, start_day)
             except ValueError:
@@ -356,7 +357,7 @@ def main():
             with e_year_col:
                 end_year = st.number_input("Year", min_value=2000, max_value=2100, value=today.year, key="ey")
                 
-            end_month_str = st.segmented_control("Month", month_options, default=str(today.month).zfill(2), key="emo")
+            end_month_str = st.segmented_control("Month", month_options, default=calendar.month_abbr[today.month], key="emo")
             end_day_str = st.segmented_control("Day", day_options, default=str(today.day).zfill(2), key="eda")
             
             st.markdown("**End Time (24h)**")
@@ -369,7 +370,7 @@ def main():
             end_min_str = st.segmented_control("Minute", minute_options, default=now_min, key="em")
             
             try:
-                end_month = int(end_month_str) if end_month_str else today.month
+                end_month = list(calendar.month_abbr).index(end_month_str) if end_month_str else today.month
                 end_day = int(end_day_str) if end_day_str else today.day
                 end_date = datetime.date(end_year, end_month, end_day)
             except ValueError:
