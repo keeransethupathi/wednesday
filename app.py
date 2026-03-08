@@ -28,8 +28,30 @@ def main():
 
     st.title("⚕️ Medical Calculator & Tools")
     
+    # Check for API key in secrets, otherwise ask in sidebar
+    try:
+        api_key = st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        api_key = ""
+        
+    with st.sidebar:
+        st.header("⚙️ Settings")
+        if not api_key:
+            api_key = st.text_input("Gemini API Key", type="password", help="Enter your Google Gemini API Key to enable AI features (e.g., drug extraction).")
+            if not api_key:
+                st.warning("Please enter your Gemini API Key to use AI features.")
+        else:
+            st.success("API Key loaded from secrets.")
+            
+    if api_key:
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+        except ImportError:
+            st.sidebar.error("Please install google-generativeai to use AI features.")
+    
     # Create Layout Tabs
-    tab1, tab2, tab3 = st.tabs(["sofa scale calculator", "show only drug extractor", "time interval"])
+    tab1, tab2, tab3, tab4 = st.tabs(["sofa scale calculator", "show only drug extractor", "time interval", "long term drug ICD"])
     
     with tab1:
         st.header("Sequential Organ Failure Assessment (SOFA) Score")
@@ -176,134 +198,64 @@ def main():
         st.code(summary_text, language="text")
 
     with tab2:
-        st.header("Drug Extractor & Disease Mapper")
-        st.markdown("Paste a medical paragraph below to extract drug names and match them to their related diseases.")
+        st.header("Drug Extractor & Disease Mapper (AI-Powered)")
+        st.markdown("Paste a medical paragraph below to extract drug names and match them to their related diseases using Google Gemini AI.")
         
-        # Comprehensive standalone dictionary mapping
-        # Contains a broad set of common critical care, general ward, and outpatient drugs
-        DRUG_DISEASE_DB = {
-            # Vasopressors / Inotropes -> Shock / Hypotension
-            "norepinephrine": "Shock / Severe Hypotension",
-            "epinephrine": "Anaphylaxis / Cardiac Arrest / Shock",
-            "dopamine": "Heart Failure / Shock",
-            "dobutamine": "Heart Failure / Cardiogenic Shock",
-            "vasopressin": "Vasodilatory Shock / Diabetes Insipidus",
-            "phenylephrine": "Hypotension",
-            "milrinone": "Heart Failure",
-            
-            # Antibiotics -> Infections
-            "amoxicillin": "Bacterial Infection",
-            "augmentin": "Bacterial Infection",
-            "azithromycin": "Bacterial Infection (e.g. Pneumonia)",
-            "ceftriaxone": "Severe Bacterial Infection",
-            "vancomycin": "MRSA / Severe Gram-positive Infection",
-            "piperacillin": "Pseudomonal / Severe Infection",
-            "tazobactam": "Severe Infection (Beta-lactamase inhibitor)",
-            "meropenem": "Severe / Resistant Bacterial Infection",
-            "cefepime": "Pseudomonal / Severe Infection",
-            "metronidazole": "Anaerobic Infection",
-            "ciprofloxacin": "Bacterial Infection",
-            "levofloxacin": "Bacterial Infection",
-            
-            # Cardiovascular / Antihypertensives -> Hypertension / Heart Disease
-            "lisinopril": "Hypertension / Heart Failure",
-            "losartan": "Hypertension",
-            "amlodipine": "Hypertension / Angina",
-            "metoprolol": "Hypertension / Angina / Heart Failure",
-            "carvedilol": "Heart Failure / Hypertension",
-            "diltiazem": "Hypertension / Arrhythmia (Afib)",
-            "amiodarone": "Arrhythmia (Afib/VT/VF)",
-            "atorvastatin": "Hyperlipidemia / Cardiovascular Disease",
-            "rosuvastatin": "Hyperlipidemia",
-            "clopidogrel": "Coronary Artery Disease / Stroke prevention",
-            "aspirin": "Coronary Artery Disease / Stroke prevention",
-            "heparin": "Deep Vein Thrombosis / Pulmonary Embolism (DVT/PE)",
-            "enoxaparin": "DVT/PE",
-            "warfarin": "Atrial Fibrillation / DVT/PE",
-            "apixaban": "Atrial Fibrillation / DVT/PE",
-            "rivaroxaban": "Atrial Fibrillation / DVT/PE",
-
-            # Respiratory -> Asthma / COPD
-            "albuterol": "Asthma / COPD (Bronchospasm)",
-            "ipratropium": "COPD / Asthma",
-            "fluticasone": "Asthma / COPD",
-            "budesonide": "Asthma / COPD",
-            "salmeterol": "Asthma / COPD",
-            "formoterol": "Asthma / COPD",
-            
-            # Diabetics -> Diabetes Mellitus
-            "metformin": "Diabetes Mellitus Type 2",
-            "insulin": "Diabetes Mellitus",
-            "glipizide": "Diabetes Mellitus Type 2",
-            "empagliflozin": "Diabetes Mellitus Type 2 / Heart Failure",
-            "sitagliptin": "Diabetes Mellitus Type 2",
-            
-            # Neuro / Psych / Analgesics -> Pain / Seizures / Psych
-            "acetaminophen": "Pain / Fever",
-            "paracetamol": "Pain / Fever",
-            "ibuprofen": "Pain / Inflammation",
-            "ketorolac": "Severe Pain",
-            "morphine": "Severe Pain",
-            "fentanyl": "Severe Pain / Anesthesia",
-            "oxycodone": "Moderate to Severe Pain",
-            "propofol": "Anesthesia / Sedation",
-            "midazolam": "Sedation / Anxiety / Seizures",
-            "dexmedetomidine": "ICU Sedation",
-            "levetiracetam": "Seizures / Epilepsy",
-            "phenytoin": "Seizures / Epilepsy",
-            "valproate": "Seizures / Bipolar Disorder",
-            "gabapentin": "Neuropathic Pain / Seizures",
-            "haloperidol": "Delirium / Schizophrenia",
-            "quetiapine": "Bipolar Disorder / Schizophrenia",
-            "fluoxetine": "Depression",
-            "sertraline": "Depression / Anxiety",
-            
-            # GI / Renal -> Ulcers / Kidney
-            "pantoprazole": "GERD / Peptic Ulcer Disease",
-            "omeprazole": "GERD / Peptic Ulcer Disease",
-            "furosemide": "Edema / Heart Failure",
-            "spironolactone": "Heart Failure / Ascites",
-            "ondansetron": "Nausea / Vomiting",
-            
-            # Steroids
-            "prednisone": "Inflammation / Autoimmune Disease",
-            "dexamethasone": "Severe Inflammation / Brain Edema",
-            "hydrocortisone": "Adrenal Insufficiency / Septic Shock"
-        }
-
         user_text = st.text_area("Input Medical Text Here:", height=200, placeholder="e.g. The patient presented with hypertension and was started on lisinopril and amlodipine. Given their history of afib, apixaban was continued...")
         
-        if st.button("Extract Drugs", type="primary"):
+        if st.button("Extract Drugs with AI", type="primary"):
             if not user_text.strip():
                 st.warning("Please enter some text to extract drugs from.")
+            elif not api_key:
+                st.error("Please provide a Gemini API Key in the sidebar to use the AI Extractor.")
             else:
-                import re
-                
-                # Simple extraction mechanism:
-                # 1. Clean the text (remove punctuation, split by words)
-                # 2. Match words against our library directly
-                
-                # strip out common punctuation to isolate words properly
-                cleaned_text = re.sub(r'[\.,/#!$%\^&\*;:{}=\-_`~()\[\]]', ' ', user_text.lower())
-                words = cleaned_text.split()
-                
-                # Use a set to capture unique drugs matched
-                extracted_results = []
-                seen_drugs = set()
-                
-                for word in words:
-                    if word in DRUG_DISEASE_DB and word not in seen_drugs:
-                        seen_drugs.add(word)
-                        extracted_results.append({
-                            "Detected Drug": word.capitalize(),
-                            "Related Disease / Indication": DRUG_DISEASE_DB[word]
-                        })
-                
-                if extracted_results:
-                    st.success(f"Found {len(extracted_results)} drug(s) in the text!")
-                    st.dataframe(extracted_results, use_container_width=True, hide_index=True)
-                else:
-                    st.info("No common drugs from our database were detected in the text. Try using generic names (e.g., 'lisinopril' instead of 'Prinivil').")
+                with st.spinner("Analyzing medical text..."):
+                    try:
+                        import google.generativeai as genai
+                        import json
+                        
+                        # Use Gemini to extract drugs and map to indications
+                        generation_config = {
+                            "temperature": 0.1,
+                            "top_p": 0.95,
+                            "top_k": 64,
+                            "max_output_tokens": 1024,
+                            "response_mime_type": "application/json",
+                        }
+                        
+                        model = genai.GenerativeModel(
+                            model_name="gemini-2.5-flash",
+                            generation_config=generation_config
+                        )
+                        
+                        prompt = f"""
+                        You are a clinical AI assistant. Your task is to extract all medication/drug names from the clinical text provided below.
+                        For each drug identified, provide the most likely 'Related Disease / Indication' for which it is being used, based on the context or standard medical knowledge.
+                        
+                        Return the result as a JSON array of objects. 
+                        Each object must have exactly two keys: "Detected Drug" and "Related Disease / Indication".
+                        If no drugs are found, return an empty array [].
+                        Do not include any other text besides the JSON array.
+                        
+                        Clinical Text:
+                        "{user_text}"
+                        """
+                        
+                        response = model.generate_content(prompt)
+                        
+                        try:
+                            extracted_results = json.loads(response.text)
+                            if extracted_results:
+                                st.success(f"AI found {len(extracted_results)} drug(s) in the text!")
+                                st.dataframe(extracted_results, use_container_width=True, hide_index=True)
+                            else:
+                                st.info("The AI did not detect any medications in the provided text.")
+                        except json.JSONDecodeError:
+                            st.error("Failed to parse AI response. Please try again.")
+                            st.code(response.text)
+                            
+                    except Exception as e:
+                        st.error(f"An error occurred during AI extraction: {str(e)}")
 
     with tab3:
         st.header("⏳ Time Interval Duration Calculator")
@@ -422,6 +374,61 @@ def main():
             st.write(f"- **{total_hours:,.2f}** total hours")
             st.write(f"- **{total_minutes:,.0f}** total minutes")
             st.write(f"- **{total_seconds:,}** total seconds")
+
+    with tab4:
+        st.header("💊 Long-term Drug Use ICD-10 Mapper")
+        st.markdown("Enter a drug name to find its most likely Z79 ICD-10 code for long-term (current) use using Google Gemini AI.")
+        
+        drug_input = st.text_input("Enter drug name:", placeholder="e.g. insulin, metformin, aspirin, warfarin").strip().lower()
+        
+        if st.button("Find ICD-10 Code with AI", type="primary"):
+            if not drug_input:
+                st.warning("Please enter a drug name to search for.")
+            elif not api_key:
+                st.error("Please provide a Gemini API Key in the sidebar to use the AI tool.")
+            else:
+                with st.spinner(f"Finding ICD-10 code for '{drug_input}'..."):
+                    try:
+                        import google.generativeai as genai
+                        
+                        generation_config = {
+                            "temperature": 0.1,
+                            "top_p": 0.95,
+                            "top_k": 64,
+                            "max_output_tokens": 256,
+                            "response_mime_type": "text/plain",
+                        }
+                        
+                        model = genai.GenerativeModel(
+                            model_name="gemini-2.5-flash",
+                            generation_config=generation_config
+                        )
+                        
+                        prompt = f"""
+                        You are a clinical AI coding assistant. Your task is to provide the most accurate ICD-10 code for long-term (current) use (usually starting with Z79) for the following drug(s).
+                        
+                        Drug Input: "{drug_input}"
+                        
+                        The user may provide one or multiple drugs (e.g. separated by commas). For each distinct drug found:
+                        1. If the drug name appears to be misspelled, please correct it. 
+                        2. Provide the ICD-10 code and description.
+                        
+                        Important Rules:
+                        - If the drug is levothyroxine or any other thyroid hormone replacement, the code MUST be Z79.890 (Hormone replacement therapy).
+                        
+                        If no specific long-term ICD code is applicable for a drug, state that it might fall under 'Z79.899 - Other long term (current) drug therapy' or specify that there isn't one.
+                        
+                        Return the results as a bulleted list. Each bullet must be formatted exactly like this:
+                        * **[Corrected Drug Name]**: Code - Description
+                        
+                        Do not provide extra conversation or introductory text. Just the bullet points.
+                        """
+                        
+                        response = model.generate_content(prompt)
+                        st.success(response.text.strip())
+                            
+                    except Exception as e:
+                        st.error(f"An error occurred during AI search: {str(e)}")
 
 if __name__ == "__main__":
     main()
