@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import calendar
+import os
 
 st.set_page_config(
     page_title="SOFA Score Calculator",
@@ -51,7 +52,7 @@ def main():
             st.sidebar.error("Please install google-generativeai to use AI features.")
     
     # Create Layout Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["sofa scale calculator", "KDIGO AKI calculation", "show only drug extractor", "time interval"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["sofa scale calculator", "KDIGO AKI calculation", "show only drug extractor", "time interval", "Upload Documents"])
     
     with tab1:
         st.header("Sequential Organ Failure Assessment (SOFA) Score")
@@ -472,6 +473,52 @@ def main():
             st.write(f"- **{total_minutes:,.0f}** total minutes")
             st.write(f"- **{total_seconds:,}** total seconds")
  
+ 
+    with tab5:
+        st.header("📂 Document Upload & Storage")
+        st.markdown("Upload clinical documents, reports, or images to store them locally for this session.")
+        
+        # Define upload directory
+        upload_dir = "uploads"
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+            
+        uploaded_files = st.file_uploader("Choose files to upload", accept_multiple_files=True)
+        
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                file_path = os.path.join(upload_dir, uploaded_file.name)
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+            st.success(f"Successfully saved {len(uploaded_files)} file(s) to `{upload_dir}/`")
+            
+        st.divider()
+        st.subheader("📋 Saved Documents")
+        
+        saved_files = os.listdir(upload_dir)
+        if saved_files:
+            for file in saved_files:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                file_path = os.path.join(upload_dir, file)
+                with col1:
+                    st.text(f"📄 {file}")
+                with col2:
+                    try:
+                        with open(file_path, "rb") as f:
+                            st.download_button(
+                                label="Download",
+                                data=f,
+                                file_name=file,
+                                key=f"dl_{file}"
+                            )
+                    except Exception as e:
+                        st.error(f"Error reading {file}")
+                with col3:
+                    if st.button("Delete", key=f"del_{file}"):
+                        os.remove(file_path)
+                        st.rerun()
+        else:
+            st.info("No documents uploaded yet.")
 
 if __name__ == "__main__":
     main()
