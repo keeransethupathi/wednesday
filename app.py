@@ -184,13 +184,14 @@ def main():
         
         # Format the summary text
         summary_text = (
-            f"Respiration = {resp_score}\n"
-            f"Coagulation = {coag_score}\n"
-            f"Liver = {liver_score}\n"
-            f"Cardiovascular = {cardio_score}\n"
-            f"Glasgow Coma Scale = {cns_score}\n"
-            f"Renal = {renal_score}\n"
-            f"Total = {total_score}"
+            "SOFA SCORE\n"
+            f"PaO2/FIO2 - {resp_score}\n"
+            f"Platelet count - {coag_score}\n"
+            f"Bilirubin (mg/dL) - {liver_score}\n"
+            f"MAP (mmHg) or vasopressor - {cardio_score}\n"
+            f"Glasgow Coma Scale Score - {cns_score}\n"
+            f"Creatinine (mg/dl)- {renal_score}\n"
+            f"Total - {total_score}"
         )
 
         st.markdown("Use the copy button in the top right of the text block below to copy your results:")
