@@ -51,7 +51,7 @@ def main():
             st.sidebar.error("Please install google-generativeai to use AI features.")
     
     # Create Layout Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["sofa scale calculator", "KDIGO AKI calculation", "show only drug extractor", "time interval", "long term drug ICD"])
+    tab1, tab2, tab3, tab4 = st.tabs(["sofa scale calculator", "KDIGO AKI calculation", "show only drug extractor", "time interval"])
     
     with tab1:
         st.header("Sequential Organ Failure Assessment (SOFA) Score")
@@ -471,60 +471,6 @@ def main():
             st.write(f"- **{total_minutes:,.0f}** total minutes")
             st.write(f"- **{total_seconds:,}** total seconds")
  
-    with tab5:
-        st.header("💊 Long-term Drug Use ICD-10 Mapper")
-        st.markdown("Enter a drug name to find its most likely Z79 ICD-10 code for long-term (current) use using Google Gemini AI.")
-        
-        drug_input = st.text_input("Enter drug name:", placeholder="e.g. insulin, metformin, aspirin, warfarin").strip().lower()
-        
-        if st.button("Find ICD-10 Code with AI", type="primary"):
-            if not drug_input:
-                st.warning("Please enter a drug name to search for.")
-            elif not api_key:
-                st.error("Please provide a Gemini API Key in the sidebar to use the AI tool.")
-            else:
-                with st.spinner(f"Finding ICD-10 code for '{drug_input}'..."):
-                    try:
-                        import google.generativeai as genai
-                        
-                        generation_config = {
-                            "temperature": 0.1,
-                            "top_p": 0.95,
-                            "top_k": 64,
-                            "max_output_tokens": 256,
-                            "response_mime_type": "text/plain",
-                        }
-                        
-                        model = genai.GenerativeModel(
-                            model_name="gemini-2.5-flash",
-                            generation_config=generation_config
-                        )
-                        
-                        prompt = f"""
-                        You are a clinical AI coding assistant. Your task is to provide the most accurate ICD-10 code for long-term (current) use (usually starting with Z79) for the following drug(s).
-                        
-                        Drug Input: "{drug_input}"
-                        
-                        The user may provide one or multiple drugs (e.g. separated by commas). For each distinct drug found:
-                        1. If the drug name appears to be misspelled, please correct it. 
-                        2. Provide the ICD-10 code and description.
-                        
-                        Important Rules:
-                        - If the drug is levothyroxine or any other thyroid hormone replacement, the code MUST be Z79.890 (Hormone replacement therapy).
-                        
-                        If no specific long-term ICD code is applicable for a drug, state that it might fall under 'Z79.899 - Other long term (current) drug therapy' or specify that there isn't one.
-                        
-                        Return the results as a bulleted list. Each bullet must be formatted exactly like this:
-                        * **[Corrected Drug Name]**: Code - Description
-                        
-                        Do not provide extra conversation or introductory text. Just the bullet points.
-                        """
-                        
-                        response = model.generate_content(prompt)
-                        st.success(response.text.strip())
-                            
-                    except Exception as e:
-                        st.error(f"An error occurred during AI search: {str(e)}")
 
 if __name__ == "__main__":
     main()
