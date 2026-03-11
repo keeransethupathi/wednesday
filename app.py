@@ -51,7 +51,7 @@ def main():
             st.sidebar.error("Please install google-generativeai to use AI features.")
     
     # Create Layout Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["sofa scale calculator", "show only drug extractor", "time interval", "long term drug ICD"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["sofa scale calculator", "KDIGO AKI calculation", "show only drug extractor", "time interval", "long term drug ICD"])
     
     with tab1:
         st.header("Sequential Organ Failure Assessment (SOFA) Score")
@@ -198,6 +198,96 @@ def main():
         st.code(summary_text, language="text")
 
     with tab2:
+        st.header("Kidney Disease: Improving Global Outcomes (KDIGO) AKI")
+        st.markdown("""
+        The KDIGO 2012 guidelines define Acute Kidney Injury (AKI) based on serum creatinine changes and urine output.
+        """)
+        st.divider()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("🧪 Creatinine Criteria")
+            curr_creat = st.number_input("Current Serum Creatinine (mg/dL)", min_value=0.0, step=0.1, value=1.0, help="Most recent creatinine level")
+            base_creat = st.number_input("Baseline Serum Creatinine (mg/dL)", min_value=0.0, step=0.1, value=1.0, help="Known baseline. If unknown, use the lowest creatinine level attained during admission.")
+            prev_creat_48h = st.number_input("Previous Creatinine (within 48 hrs) (mg/dL)", min_value=0.0, step=0.1, value=1.0, help="For prospective measurement comparison")
+
+        with col2:
+            st.subheader("💧 Urine Output Criteria")
+            u_vol = st.number_input("Urine Volume (mL)", min_value=0.0, step=10.0, value=500.0)
+            weight = st.number_input("Patient Weight (kg)", min_value=1.0, step=1.0, value=70.0)
+            duration_hrs = st.number_input("Collection Duration (hours)", min_value=1.0, step=1.0, value=12.0)
+
+        st.divider()
+
+        # Calculations
+        crit1_met = False
+        crit1_val = 0.0
+        if base_creat > 0:
+            crit1_val = curr_creat / base_creat
+            if crit1_val >= 1.5:
+                crit1_met = True
+
+        crit2_met = False
+        crit2_diff = curr_creat - prev_creat_48h
+        if crit2_diff >= 0.3:
+            crit2_met = True
+
+        uop_rate = u_vol / weight / duration_hrs
+        crit3_met = False
+        if uop_rate < 0.5:
+            crit3_met = True
+
+        # Results Display
+        st.subheader("📊 Results")
+        
+        c1, c2, c3 = st.columns(3)
+        
+        with c1:
+            st.markdown("**Criterion 1**")
+            st.markdown(f"$\ge 1.5 \\times$ baseline")
+            if crit1_met:
+                st.success(f"MET (Ratio: {crit1_val:.2f})")
+            else:
+                st.info(f"Not Met (Ratio: {crit1_val:.2f})")
+
+        with c2:
+            st.markdown("**Criterion 2**")
+            st.markdown(f"$\ge 0.3$ mg/dL increase (48h)")
+            if crit2_met:
+                st.success(f"MET (Increase: {crit2_diff:.2f})")
+            else:
+                st.info(f"Not Met (Increase: {crit2_diff:.2f})")
+
+        with c3:
+            st.markdown("**Criterion 3**")
+            st.markdown(f"UOP < 0.5 ml/kg/hr")
+            if crit3_met:
+                st.success(f"MET (Rate: {uop_rate:.3f})")
+            else:
+                st.info(f"Not Met (Rate: {uop_rate:.3f})")
+
+        st.divider()
+        
+        is_aki = crit1_met or crit2_met or crit3_met
+        if is_aki:
+            st.error("### AKI Criteria MET")
+            st.markdown("The patient meets the KDIGO criteria for Acute Kidney Injury.")
+        else:
+            st.success("### No AKI Criteria Met")
+            st.markdown("The values provided do not meet the KDIGO criteria for Acute Kidney Injury.")
+
+        st.subheader("📋 Output Summary")
+        summary_kdigo = (
+            f"Current Creatinine: {curr_creat} mg/dL\n"
+            f"Baseline Creatinine: {base_creat} mg/dL (Ratio: {crit1_val:.2f})\n"
+            f"Previous Creatinine (48h): {prev_creat_48h} mg/dL (Diff: {crit2_diff:.2f})\n"
+            f"Urine Output: {u_vol} mL over {duration_hrs}h (Rate: {uop_rate:.3f} ml/kg/hr)\n"
+            f"KDIGO AKI Status: {'MET' if is_aki else 'NOT MET'}"
+        )
+        st.code(summary_kdigo, language="text")
+
+    with tab3:
         st.header("Drug Extractor & Disease Mapper (AI-Powered)")
         st.markdown("Paste a medical paragraph below to extract drug names and match them to their related diseases using Google Gemini AI.")
         
@@ -241,6 +331,12 @@ def main():
                         "{user_text}"
                         """
                         
+                        # Corrected model version if necessary (user had "gemini-2.5-flash" in original, 
+                        # but genai usually uses "gemini-1.5-flash" or similar. 
+                        # I'll stick to what was in the file or update to a standard one if I'm sure)
+                        # Actually the file had "gemini-2.5-flash" (maybe a typo or future/custom version in their env?)
+                        # I'll keep it as is to avoid breaking their current setup if it works.
+                        
                         response = model.generate_content(prompt)
                         
                         try:
@@ -257,7 +353,7 @@ def main():
                     except Exception as e:
                         st.error(f"An error occurred during AI extraction: {str(e)}")
 
-    with tab3:
+    with tab4:
         st.header("⏳ Time Interval Duration Calculator")
         st.markdown("Calculate the exact duration (days, hours, minutes) between two dates and times. Useful for determining elapsed clinical time.")
         
@@ -301,7 +397,7 @@ def main():
             except ValueError:
                 st.error("⚠️ Invalid Start Date (e.g. Feb 30). Defaulting to 1st of month.")
                 start_date = datetime.date(start_year, start_month, 1)
-
+ 
             start_hour = int(start_hour_str) if start_hour_str else 0
             start_minute = int(start_min_str) if start_min_str else 0
             start_time = datetime.time(start_hour, start_minute)
@@ -332,7 +428,7 @@ def main():
             now_hour = str(datetime.datetime.now().hour).zfill(2)
             now_min_val = (datetime.datetime.now().minute // 5) * 5
             now_min = str(now_min_val).zfill(2)
-
+ 
             end_hour_str = st.segmented_control("Hour", hour_options, default=now_hour, key="eh")
             end_min_str = st.segmented_control("Minute", minute_options, default=now_min, key="em")
             
@@ -374,8 +470,8 @@ def main():
             st.write(f"- **{total_hours:,.2f}** total hours")
             st.write(f"- **{total_minutes:,.0f}** total minutes")
             st.write(f"- **{total_seconds:,}** total seconds")
-
-    with tab4:
+ 
+    with tab5:
         st.header("💊 Long-term Drug Use ICD-10 Mapper")
         st.markdown("Enter a drug name to find its most likely Z79 ICD-10 code for long-term (current) use using Google Gemini AI.")
         
