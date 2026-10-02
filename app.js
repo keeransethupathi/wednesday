@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // =========================================
-  // TOAST NOTIFICATION
+  // TOAST POPUP SYSTEM
   // =========================================
   const showToast = (msg) => {
     const toast = document.getElementById('toast');
@@ -13,80 +13,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================
   // NAV TAB SYSTEM
   // =========================================
-  const navBtns = document.querySelectorAll('.nav-btn');
-  const tabPanes = document.querySelectorAll('.tab-pane');
+  const navTabs = document.querySelectorAll('.nav-tab');
+  const tabViews = document.querySelectorAll('.tab-view');
 
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-tab');
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-tab');
 
-      navBtns.forEach(b => b.classList.remove('active'));
-      tabPanes.forEach(p => p.classList.remove('active'));
+      navTabs.forEach(t => t.classList.remove('active'));
+      tabViews.forEach(v => v.classList.remove('active'));
 
-      btn.classList.add('active');
-      const pane = document.getElementById(targetId);
-      if (pane) pane.classList.add('active');
+      tab.classList.add('active');
+      const targetView = document.getElementById(targetId);
+      if (targetView) targetView.classList.add('active');
     });
   });
 
   // =========================================
-  // API KEY MODAL SYSTEM
-  // =========================================
-  const openKeyBtn = document.getElementById('open-key-modal');
-  const closeKeyBtn = document.getElementById('close-key-modal');
-  const keyModal = document.getElementById('key-modal');
-  const saveKeyBtn = document.getElementById('save-key-btn');
-  const apiKeyInput = document.getElementById('api-key-input');
-  const keyDot = document.getElementById('key-dot');
-  const keyLabel = document.getElementById('key-label');
-  const modalStatus = document.getElementById('api-key-modal-status');
-
-  let userApiKey = localStorage.getItem('gemini_api_key') || '';
-  if (userApiKey && apiKeyInput) {
-    apiKeyInput.value = userApiKey;
-    updateKeyUI(true);
-  }
-
-  function updateKeyUI(hasKey) {
-    if (hasKey) {
-      if (keyDot) keyDot.classList.add('active');
-      if (keyLabel) keyLabel.innerText = 'API Key Active';
-      if (modalStatus) {
-        modalStatus.style.color = 'var(--accent-emerald)';
-        modalStatus.innerText = '✅ API Key configured and active';
-      }
-    } else {
-      if (keyDot) keyDot.classList.remove('active');
-      if (keyLabel) keyLabel.innerText = 'Gemini API Key';
-      if (modalStatus) {
-        modalStatus.style.color = 'var(--accent-amber)';
-        modalStatus.innerText = '⚠️ Key not configured (AI fallback active)';
-      }
-    }
-  }
-
-  if (openKeyBtn) openKeyBtn.addEventListener('click', () => keyModal.style.display = 'flex');
-  if (closeKeyBtn) closeKeyBtn.addEventListener('click', () => keyModal.style.display = 'none');
-
-  if (saveKeyBtn) {
-    saveKeyBtn.addEventListener('click', () => {
-      userApiKey = apiKeyInput.value.trim();
-      localStorage.setItem('gemini_api_key', userApiKey);
-      updateKeyUI(!!userApiKey);
-      keyModal.style.display = 'none';
-      showToast('API Key saved successfully!');
-    });
-  }
-
-  // =========================================
-  // 1. SOFA CALCULATOR ENGINE
+  // 1. SOFA SCORE CALCULATOR ENGINE
   // =========================================
   const sofaState = { resp: 0, coag: 0, cns: 0, liver: 0, cardio: 0, renal: 0 };
 
-  const bindOptionGroup = (containerId, key) => {
+  const bindPillControl = (containerId, key) => {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const btns = container.querySelectorAll('.option-btn');
+    const btns = container.querySelectorAll('.pill-option');
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         btns.forEach(b => b.classList.remove('active'));
@@ -97,60 +48,67 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  bindOptionGroup('resp-control', 'resp');
-  bindOptionGroup('coag-control', 'coag');
-  bindOptionGroup('cns-control', 'cns');
-  bindOptionGroup('liver-control', 'liver');
-  bindOptionGroup('cardio-control', 'cardio');
-  bindOptionGroup('renal-control', 'renal');
+  bindPillControl('resp-control', 'resp');
+  bindPillControl('coag-control', 'coag');
+  bindPillControl('cns-control', 'cns');
+  bindPillControl('liver-control', 'liver');
+  bindPillControl('cardio-control', 'cardio');
+  bindPillControl('renal-control', 'renal');
 
   function calculateSOFA() {
     const total = sofaState.resp + sofaState.coag + sofaState.cns + sofaState.liver + sofaState.cardio + sofaState.renal;
     const totalEl = document.getElementById('sofa-total-score');
     if (totalEl) totalEl.innerText = total;
 
+    // Progress bar fill % (max 24)
+    const progressBar = document.getElementById('sofa-progress-bar');
+    if (progressBar) {
+      const pct = Math.min(100, Math.round((total / 24) * 100));
+      progressBar.style.width = `${pct}%`;
+    }
+
     let mortality = "0.0%";
-    let badgeClass = "badge-green";
-    let statusText = "Normal / Minimal";
+    let badgeClass = "badge-low";
+    let severityGrade = "Grade 0: Normal / Minimal";
 
     if (total <= 1) {
       mortality = "0.0%";
-      badgeClass = "badge-green";
-      statusText = "Normal / Minimal";
+      badgeClass = "badge-low";
+      severityGrade = "Grade 0: Normal / Minimal";
     } else if (total <= 3) {
       mortality = "6.4%";
-      badgeClass = "badge-green";
-      statusText = "Mild Dysfunction";
+      badgeClass = "badge-low";
+      severityGrade = "Grade 1: Mild Organ Dysfunction";
     } else if (total <= 5) {
       mortality = "20.2%";
-      badgeClass = "badge-yellow";
-      statusText = "Moderate Dysfunction";
+      badgeClass = "badge-mod";
+      severityGrade = "Grade 2: Moderate Dysfunction";
     } else if (total <= 7) {
       mortality = "21.5%";
-      badgeClass = "badge-yellow";
-      statusText = "Significant Dysfunction";
+      badgeClass = "badge-mod";
+      severityGrade = "Grade 2: Significant Dysfunction";
     } else if (total <= 9) {
       mortality = "33.3%";
-      badgeClass = "badge-red";
-      statusText = "Severe Organ Failure";
+      badgeClass = "badge-high";
+      severityGrade = "Grade 3: Severe Failure";
     } else if (total <= 11) {
       mortality = "50.0%";
-      badgeClass = "badge-red";
-      statusText = "High Mortality Failure";
+      badgeClass = "badge-high";
+      severityGrade = "Grade 3: High-Risk Failure";
     } else {
       mortality = total <= 14 ? "95.2%" : ">95.2%";
-      badgeClass = "badge-red";
-      statusText = "Critical Multi-Organ Failure";
+      badgeClass = "badge-high";
+      severityGrade = "Grade 4: Critical Multi-Organ Failure";
     }
 
     const mortEl = document.getElementById('sofa-mortality');
     if (mortEl) {
-      mortEl.className = `metric-badge ${badgeClass}`;
+      mortEl.className = `mortality-badge ${badgeClass}`;
       mortEl.innerText = `~${mortality} Mortality`;
     }
 
-    const pillEl = document.getElementById('sofa-status-pill');
-    if (pillEl) pillEl.innerText = statusText;
+    const severityEl = document.getElementById('sofa-severity-pill');
+    if (severityEl) severityEl.innerText = severityGrade;
 
     const summaryText = 
 `SOFA SCORE
@@ -174,7 +132,7 @@ Total - ${total}`;
     groups.forEach(id => {
       const container = document.getElementById(id);
       if (container) {
-        const btns = container.querySelectorAll('.option-btn');
+        const btns = container.querySelectorAll('.pill-option');
         btns.forEach((b, idx) => {
           if (idx === 0) b.classList.add('active');
           else b.classList.remove('active');
@@ -182,13 +140,13 @@ Total - ${total}`;
       }
     });
     calculateSOFA();
-    showToast('SOFA score reset to defaults');
+    showToast('SOFA score reset');
   });
 
   document.getElementById('btn-copy-sofa').addEventListener('click', () => {
     const text = document.getElementById('sofa-summary-text').innerText;
     navigator.clipboard.writeText(text);
-    showToast('SOFA summary copied to clipboard!');
+    showToast('SOFA summary copied!');
   });
 
   // =========================================
@@ -218,26 +176,26 @@ Total - ${total}`;
     let uopRate = uvol / w / d;
     let crit3Met = uopRate < 0.5;
 
-    updateCritUI('crit-1', crit1Met, `Ratio: ${crit1Ratio.toFixed(2)}x`);
-    updateCritUI('crit-2', crit2Met, `Diff: +${crit2Diff.toFixed(2)}`);
-    updateCritUI('crit-3', crit3Met, `Rate: ${uopRate.toFixed(3)} ml/kg/h`);
+    updateCritUI('crit-1', crit1Met, `Ratio: ${crit1Ratio.toFixed(2)}x baseline`);
+    updateCritUI('crit-2', crit2Met, `Diff: +${crit2Diff.toFixed(2)} mg/dL`);
+    updateCritUI('crit-3', crit3Met, `Rate: ${uopRate.toFixed(3)} ml/kg/hr`);
 
     const isAki = crit1Met || crit2Met || crit3Met;
     const banner = document.getElementById('kdigo-final-status');
     if (banner) {
       if (isAki) {
-        banner.className = 'status-banner banner-danger margin-top';
+        banner.className = 'alert-banner alert-danger margin-top-lg';
         banner.innerHTML = `
-          <div class="banner-icon">⚠️</div>
+          <div class="alert-icon-wrap">⚠️</div>
           <div>
             <h4>KDIGO AKI Criteria MET</h4>
-            <p>The patient parameters meet KDIGO criteria for Acute Kidney Injury.</p>
+            <p>The patient parameters meet KDIGO guidelines for Acute Kidney Injury.</p>
           </div>
         `;
       } else {
-        banner.className = 'status-banner banner-normal margin-top';
+        banner.className = 'alert-banner alert-success margin-top-lg';
         banner.innerHTML = `
-          <div class="banner-icon">✅</div>
+          <div class="alert-icon-wrap">✅</div>
           <div>
             <h4>No AKI Criteria Met</h4>
             <p>The patient parameters do not meet KDIGO criteria for Acute Kidney Injury.</p>
@@ -264,11 +222,11 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
     if (pill) {
       pill.innerText = isMet ? 'MET' : 'Not Met';
       pill.style.background = isMet ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)';
-      pill.style.color = isMet ? 'var(--accent-emerald)' : 'var(--text-subtle)';
+      pill.style.color = isMet ? 'var(--emerald-primary)' : 'var(--text-subtle)';
     }
     if (status) {
       status.innerText = textVal;
-      status.style.color = isMet ? 'var(--accent-emerald)' : 'var(--accent-cyan-light)';
+      status.style.color = isMet ? 'var(--emerald-primary)' : 'var(--cyan-primary)';
     }
   }
 
@@ -292,91 +250,102 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
   document.getElementById('btn-copy-kdigo').addEventListener('click', () => {
     const text = document.getElementById('kdigo-summary-text').innerText;
     navigator.clipboard.writeText(text);
-    showToast('KDIGO summary copied to clipboard!');
+    showToast('KDIGO summary copied!');
   });
 
   // =========================================
-  // 3. AI DRUG EXTRACTOR ENGINE
+  // 3. BUILT-IN CLINICAL DRUG MAPPER ENGINE (ZERO API)
   // =========================================
-  const sampleNote = `Patient is a 68-year-old male admitted with hypertensive emergency and acute chest pain. Past medical history is significant for chronic atrial fibrillation, type 2 diabetes, and hyperlipidemia. Current medications initiated include Lisinopril 20mg daily for blood pressure control, Amlodipine 10mg daily, Metformin 1000mg twice daily for glycemic management, and Atorvastatin 80mg for hyperlipidemia. Apixaban 5mg BID was continued for thromboembolism prophylaxis in AFib.`;
+  const DRUG_DATABASE = [
+    { name: 'Lisinopril', aliases: ['lisinopril', 'zestril', 'prinivil'], indication: 'Hypertension / Heart Failure / Post-MI' },
+    { name: 'Amlodipine', aliases: ['amlodipine', 'norvasc'], indication: 'Hypertension / Angina / Coronary Artery Disease' },
+    { name: 'Metformin', aliases: ['metformin', 'glucophage'], indication: 'Type 2 Diabetes Mellitus' },
+    { name: 'Atorvastatin', aliases: ['atorvastatin', 'lipitor'], indication: 'Hyperlipidemia / Cardiovascular Disease Risk Reduction' },
+    { name: 'Apixaban', aliases: ['apixaban', 'eliquis'], indication: 'Atrial Fibrillation / DVT / PE Anticoagulation' },
+    { name: 'Rivaroxaban', aliases: ['rivaroxaban', 'xarelto'], indication: 'Atrial Fibrillation / Venous Thromboembolism' },
+    { name: 'Warfarin', aliases: ['warfarin', 'coumadin'], indication: 'Anticoagulation / Mechanical Heart Valve / DVT' },
+    { name: 'Metoprolol', aliases: ['metoprolol', 'lopressor', 'toprol'], indication: 'Hypertension / Angina / Heart Failure / Tachyarrhythmias' },
+    { name: 'Aspirin', aliases: ['aspirin', 'asa', 'acetylsalicylic'], indication: 'Antiplatelet Therapy / Acute Coronary Syndrome / Stroke Prophylaxis' },
+    { name: 'Clopidogrel', aliases: ['clopidogrel', 'plavix'], indication: 'Antiplatelet / Recent MI / Stent Thrombosis Prophylaxis' },
+    { name: 'Ticagrelor', aliases: ['ticagrelor', 'brilinta'], indication: 'Acute Coronary Syndrome / Antiplatelet' },
+    { name: 'Furosemide', aliases: ['furosemide', 'lasix'], indication: 'Edema / Congestive Heart Failure / Renal Impairment' },
+    { name: 'Omeprazole', aliases: ['omeprazole', 'prilosec'], indication: 'GERD / Peptic Ulcer Disease / Stress Ulcer Prophylaxis' },
+    { name: 'Pantoprazole', aliases: ['pantoprazole', 'protonix'], indication: 'GERD / Stress Ulcer Prophylaxis / GI Bleed' },
+    { name: 'Levofloxacin', aliases: ['levofloxacin', 'levaquin'], indication: 'Bacterial Infection / Pneumonia / UTI' },
+    { name: 'Vancomycin', aliases: ['vancomycin', 'vancocin'], indication: 'MRSA Infection / Severe Gram-Positive Sepsis' },
+    { name: 'Heparin', aliases: ['heparin', 'unfractionated heparin'], indication: 'Anticoagulation / Thrombosis Prophylaxis / ACS' },
+    { name: 'Enoxaparin', aliases: ['enoxaparin', 'lovenox'], indication: 'LMWH Anticoagulation / DVT Prophylaxis' },
+    { name: 'Albuterol', aliases: ['albuterol', 'ventolin', 'proair'], indication: 'Bronchospasm / Asthma / COPD Exacerbation' },
+    { name: 'Insulin', aliases: ['insulin', 'humalog', 'novolog', 'lantus'], indication: 'Hyperglycemia / Diabetes Mellitus' },
+    { name: 'Norepinephrine', aliases: ['norepinephrine', 'levophed'], indication: 'Septic Shock / Severe Hypotension Vasopressor Support' },
+    { name: 'Dopamine', aliases: ['dopamine'], indication: 'Hemodynamic Support / Inotropic Support' },
+    { name: 'Dobutamine', aliases: ['dobutamine'], indication: 'Inotropic Support / Cardiogenic Shock' },
+    { name: 'Epinephrine', aliases: ['epinephrine', 'adrenaline'], indication: 'Anaphylaxis / Cardiac Arrest / Severe Vasodilatory Shock' },
+    { name: 'Losartan', aliases: ['losartan', 'cozaar'], indication: 'Hypertension / Diabetic Nephropathy' },
+    { name: 'Empagliflozin', aliases: ['empagliflozin', 'jardiance'], indication: 'Type 2 Diabetes / Heart Failure / CKD' },
+    { name: 'Hydrochlorothiazide', aliases: ['hydrochlorothiazide', 'hctz'], indication: 'Hypertension / Mild Edema' },
+    { name: 'Spironolactone', aliases: ['spironolactone', 'aldactone'], indication: 'Heart Failure / Hyperaldosteronism / Resistant Hypertension' },
+    { name: 'Amiodarone', aliases: ['amiodarone', 'pacerone'], indication: 'Ventricular Arrhythmias / Atrial Fibrillation Rate Control' },
+    { name: 'Digoxin', aliases: ['digoxin', 'lanoxin'], indication: 'Heart Failure / Atrial Fibrillation Rate Control' },
+    { name: 'Propofol', aliases: ['propofol', 'diprivan'], indication: 'ICU Sedation / Anesthesia Maintenance' },
+    { name: 'Fentanyl', aliases: ['fentanyl', 'sublimaze'], indication: 'Analgesia / Critical Care Sedation & Pain Control' },
+    { name: 'Sertraline', aliases: ['sertraline', 'zoloft'], indication: 'Major Depressive Disorder / Anxiety' },
+    { name: 'Gabapentin', aliases: ['gabapentin', 'neurontin'], indication: 'Neuropathic Pain / Seizure Adjunct' },
+    { name: 'Prednisone', aliases: ['prednisone', 'deltasone'], indication: 'Inflammatory Condition / Immunosuppression / COPD' }
+  ];
 
-  document.getElementById('btn-load-sample-ai').addEventListener('click', () => {
-    document.getElementById('ai-text-input').value = sampleNote;
-    showToast('Sample clinical note loaded!');
+  const sampleText = `Patient is a 68-year-old male admitted with hypertensive emergency and acute chest pain. Past medical history includes chronic atrial fibrillation, type 2 diabetes, and hyperlipidemia. Current hospital medications initiated: Lisinopril 20mg daily for BP management, Amlodipine 10mg daily, Metformin 1000mg twice daily for glycemic control, and Atorvastatin 80mg for cholesterol. Apixaban 5mg BID maintained for stroke prophylaxis in AFib. Metoprolol 50mg added for rate control.`;
+
+  document.getElementById('btn-load-sample').addEventListener('click', () => {
+    document.getElementById('drug-text-input').value = sampleText;
+    parseDrugs();
+    showToast('Sample note loaded & parsed!');
   });
 
-  document.getElementById('btn-clear-ai').addEventListener('click', () => {
-    document.getElementById('ai-text-input').value = '';
-    document.getElementById('ai-results-card').style.display = 'none';
+  document.getElementById('btn-clear-drug').addEventListener('click', () => {
+    document.getElementById('drug-text-input').value = '';
+    document.getElementById('drug-results-card').style.display = 'none';
   });
 
-  document.getElementById('btn-extract-ai').addEventListener('click', async () => {
-    const text = document.getElementById('ai-text-input').value.trim();
+  document.getElementById('btn-extract-drug').addEventListener('click', () => {
+    parseDrugs();
+  });
+
+  function parseDrugs() {
+    const text = document.getElementById('drug-text-input').value.trim();
     if (!text) {
-      alert('Please enter clinical note text to extract medications.');
+      alert('Please enter clinical text to extract drugs.');
       return;
     }
 
-    const resultsCard = document.getElementById('ai-results-card');
-    const loadingSpinner = document.getElementById('ai-loading-spinner');
-    const tbody = document.getElementById('ai-table-body');
+    const textLower = text.toLowerCase();
+    const detected = [];
+
+    DRUG_DATABASE.forEach(drug => {
+      const match = drug.aliases.some(alias => textLower.includes(alias));
+      if (match) {
+        detected.push(drug);
+      }
+    });
+
+    const resultsCard = document.getElementById('drug-results-card');
+    const countBadge = document.getElementById('drug-count-badge');
+    const tbody = document.getElementById('drug-table-body');
 
     resultsCard.style.display = 'block';
-    loadingSpinner.style.display = 'flex';
-    tbody.innerHTML = '';
+    countBadge.innerText = detected.length;
 
-    try {
-      let data;
-      try {
-        const res = await fetch('/api/extract', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, api_key: userApiKey })
-        });
-        data = await res.json();
-      } catch (err) {
-        if (!userApiKey) {
-          throw new Error("Please configure a Gemini API Key in the top right menu.");
-        }
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userApiKey}`;
-        const prompt = `Extract all medications from this text and map to indications in JSON format array of objects with keys "Detected Drug" and "Related Disease / Indication". Text: "${text}"`;
-        const res = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { response_mime_type: "application/json" }
-          })
-        });
-        const raw = await res.json();
-        const jsonStr = raw.candidates[0].content.parts[0].text;
-        data = { results: JSON.parse(jsonStr) };
-      }
-
-      loadingSpinner.style.display = 'none';
-
-      if (data.error) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color: var(--accent-rose);">Error: ${data.error}</td></tr>`;
-        return;
-      }
-
-      const items = data.results || [];
-      if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color: var(--text-subtle);">No medications detected.</td></tr>`;
-      } else {
-        tbody.innerHTML = items.map(item => `
-          <tr>
-            <td><strong>💊 ${item['Detected Drug'] || item.drug || 'Unknown'}</strong></td>
-            <td>${item['Related Disease / Indication'] || item.indication || 'Clinical Use'}</td>
-          </tr>
-        `).join('');
-      }
-
-    } catch (error) {
-      loadingSpinner.style.display = 'none';
-      tbody.innerHTML = `<tr><td colspan="2" style="color: var(--accent-rose);">Extraction Failed: ${error.message}</td></tr>`;
+    if (detected.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="2" style="color: var(--text-subtle);">No standard medications automatically detected in this passage.</td></tr>`;
+    } else {
+      tbody.innerHTML = detected.map(d => `
+        <tr>
+          <td><strong>💊 ${d.name}</strong></td>
+          <td>${d.indication}</td>
+        </tr>
+      `).join('');
     }
-  });
+  }
 
   // =========================================
   // 4. TIME INTERVAL ENGINE
@@ -426,7 +395,7 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
     calculateTimeInterval();
   }
 
-  document.querySelectorAll('.preset-btn').forEach(btn => {
+  document.querySelectorAll('.btn-preset').forEach(btn => {
     btn.addEventListener('click', () => {
       const hrs = parseInt(btn.getAttribute('data-hours'), 10) || 24;
       const endD = new Date();
@@ -451,7 +420,7 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
 
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropZone.style.borderColor = 'var(--accent-cyan)';
+      dropZone.style.borderColor = 'var(--cyan-primary)';
     });
 
     dropZone.addEventListener('dragleave', () => {
@@ -472,26 +441,26 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
       savedFiles.push(files[i]);
     }
     renderFileList();
-    showToast(`Added ${files.length} document(s)`);
+    showToast(`Added ${files.length} file(s)`);
   }
 
   function renderFileList() {
     if (savedFiles.length === 0) {
-      fileList.innerHTML = '<li class="empty-msg">No documents uploaded in this session.</li>';
+      fileList.innerHTML = '<li class="empty-file-row">No documents uploaded in this session yet.</li>';
       return;
     }
 
     fileList.innerHTML = savedFiles.map((f, idx) => `
-      <li class="file-item">
+      <li class="file-row-item">
         <span>📄 <strong>${f.name}</strong> (${(f.size / 1024).toFixed(1)} KB)</span>
-        <button class="btn btn-glass btn-sm" onclick="deleteDoc(${idx})">Delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteDocItem(${idx})">Delete</button>
       </li>
     `).join('');
   }
 
-  window.deleteDoc = (idx) => {
+  window.deleteDocItem = (idx) => {
     savedFiles.splice(idx, 1);
     renderFileList();
-    showToast('Document removed');
+    showToast('File deleted');
   };
 });

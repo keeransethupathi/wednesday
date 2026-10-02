@@ -3,578 +3,595 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedCalc AI | Advanced Clinical Decision Suite</title>
-  <meta name="description" content="Next-Generation Medical Decision Support: SOFA Score, KDIGO AKI Staging, Gemini AI Drug Extractor, and Clinical Tools.">
+  <title>MedCalc | Clinical Decision & Drug Mapper Suite</title>
+  <meta name="description" content="Instant Clinical Decision Support: SOFA Score Calculator, KDIGO AKI Staging, Built-in Drug Extractor & Disease Mapper, and Time Tools.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Ambient background glow elements -->
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
+  <!-- Ambient Gradient Orbs -->
+  <div class="mesh-background">
+    <div class="mesh-orb orb-cyan"></div>
+    <div class="mesh-orb orb-indigo"></div>
+    <div class="mesh-orb orb-emerald"></div>
+  </div>
 
-  <div class="app-container">
-    <!-- Top Navigation & Brand Header -->
-    <header class="app-header">
-      <div class="header-content">
+  <div class="app-layout">
+    <!-- Top Header -->
+    <header class="main-header">
+      <div class="header-inner">
         <div class="brand">
-          <div class="brand-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <div class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
           </div>
           <div>
-            <h1 class="brand-title">MedCalc<span class="accent-text">.ai</span></h1>
-            <p class="brand-subtitle">Clinical Decision & Intelligence Suite</p>
+            <h1 class="brand-name">MedCalc<span class="brand-glow">.suite</span></h1>
+            <p class="brand-tag">Evidence-Based Clinical Decision System</p>
           </div>
         </div>
 
         <!-- Navigation Tabs -->
-        <nav class="nav-pills" role="tablist">
-          <button class="nav-btn active" data-tab="tab-sofa">
-            <span class="nav-icon">🫁</span> SOFA Score
+        <nav class="nav-tabs-wrapper" role="tablist">
+          <button class="nav-tab active" data-tab="tab-sofa">
+            <span class="tab-icon">🫁</span>
+            <span>SOFA Score</span>
           </button>
-          <button class="nav-btn" data-tab="tab-kdigo">
-            <span class="nav-icon">💧</span> KDIGO AKI
+          <button class="nav-tab" data-tab="tab-kdigo">
+            <span class="tab-icon">💧</span>
+            <span>KDIGO AKI</span>
           </button>
-          <button class="nav-btn" data-tab="tab-ai">
-            <span class="nav-icon">✨</span> AI Drug Extractor
+          <button class="nav-tab" data-tab="tab-drugs">
+            <span class="tab-icon">💊</span>
+            <span>Drug Mapper</span>
           </button>
-          <button class="nav-btn" data-tab="tab-time">
-            <span class="nav-icon">⏳</span> Time Calculator
+          <button class="nav-tab" data-tab="tab-time">
+            <span class="tab-icon">⏳</span>
+            <span>Time Calculator</span>
           </button>
-          <button class="nav-btn" data-tab="tab-docs">
-            <span class="nav-icon">📁</span> Documents
+          <button class="nav-tab" data-tab="tab-docs">
+            <span class="tab-icon">📁</span>
+            <span>Documents</span>
           </button>
         </nav>
 
-        <!-- Header Actions / API Key Trigger -->
-        <div class="header-actions">
-          <button class="key-status-btn" id="open-key-modal" title="Configure Gemini API Key">
-            <span class="key-indicator" id="key-dot"></span>
-            <span class="key-text" id="key-label">Gemini API Key</span>
-          </button>
+        <div class="header-status-chip">
+          <span class="pulse-dot"></span>
+          <span>Instant Engine • Zero API Needed</span>
         </div>
       </div>
     </header>
 
-    <!-- Main Content Body -->
-    <main class="main-body">
+    <!-- Main Content Container -->
+    <main class="content-container">
 
       <!-- TAB 1: SOFA SCORE CALCULATOR -->
-      <section id="tab-sofa" class="tab-pane active">
-        <div class="pane-banner">
+      <section id="tab-sofa" class="tab-view active">
+        <div class="view-header">
           <div>
-            <h2>Sequential Organ Failure Assessment (SOFA)</h2>
-            <p>Select criteria for each organ system to evaluate failure severity and estimated mortality risk.</p>
+            <h2>Sequential Organ Failure Assessment (SOFA) Score</h2>
+            <p>Select criteria for 6 physiological organ systems to quantify organ dysfunction & mortality risk.</p>
           </div>
-          <button class="btn btn-glass btn-sm" id="btn-reset-sofa">
+          <button class="btn btn-ghost btn-sm" id="btn-reset-sofa">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            Reset All
+            Reset Defaults
           </button>
         </div>
 
-        <!-- Live Metrics Bar -->
-        <div class="score-summary-bar">
-          <div class="summary-metric">
-            <span class="metric-title">Total SOFA Score</span>
-            <div class="metric-score-wrap">
-              <span class="metric-score" id="sofa-total-score">0</span>
-              <span class="score-max">/ 24</span>
+        <!-- Live Score Hero Dashboard -->
+        <div class="hero-dashboard-card">
+          <div class="hero-metric-box">
+            <span class="hero-title">Total SOFA Score</span>
+            <div class="score-display">
+              <span class="score-val" id="sofa-total-score">0</span>
+              <span class="score-denom">/ 24</span>
+            </div>
+            <!-- Animated Score Progress Meter -->
+            <div class="score-progress-track">
+              <div class="score-progress-fill" id="sofa-progress-bar" style="width: 0%;"></div>
             </div>
           </div>
-          <div class="summary-metric">
-            <span class="metric-title">Estimated Mortality Risk</span>
-            <span class="metric-badge badge-green" id="sofa-mortality">~0.0% Risk</span>
+
+          <div class="hero-metric-box">
+            <span class="hero-title">Estimated ICU Mortality</span>
+            <div class="mortality-badge badge-low" id="sofa-mortality">~0.0% Mortality</div>
+            <span class="hero-sub">Based on critical care cohort data</span>
           </div>
-          <div class="summary-metric">
-            <span class="metric-title">Organ Dysfunction Level</span>
-            <span class="status-pill pill-normal" id="sofa-status-pill">Normal / Minimal</span>
+
+          <div class="hero-metric-box">
+            <span class="hero-title">Failure Severity Grade</span>
+            <div class="severity-pill pill-cyan" id="sofa-severity-pill">Grade 0: Normal / Minimal</div>
+            <span class="hero-sub">System failure categorization</span>
           </div>
         </div>
 
         <!-- 6 Organ Systems Grid -->
-        <div class="systems-grid">
+        <div class="organ-grid">
           <!-- 1. Respiration -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-respiration">🫁</span>
+            <div class="organ-card-title">
+              <span class="organ-badge cyan">🫁</span>
               <div>
                 <h3>Respiration</h3>
-                <span class="organ-unit">PaO₂ / FiO₂ Ratio (mmHg)</span>
+                <span class="unit-label">PaO₂ / FiO₂ Ratio (mmHg)</span>
               </div>
             </div>
-            <div class="option-list" id="resp-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">≥ 400</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="resp-control">
+              <button class="pill-option active" data-value="0">
+                <span>≥ 400</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">&lt; 400</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>&lt; 400</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">&lt; 300</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>&lt; 300</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">&lt; 200 with respiratory support</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>&lt; 200 with respiratory support</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">&lt; 100 with respiratory support</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>&lt; 100 with respiratory support</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
 
           <!-- 2. Coagulation -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-coagulation">🩸</span>
+            <div class="organ-card-title">
+              <span class="organ-badge rose">🩸</span>
               <div>
                 <h3>Coagulation</h3>
-                <span class="organ-unit">Platelets (×10³/µL)</span>
+                <span class="unit-label">Platelets (×10³/µL)</span>
               </div>
             </div>
-            <div class="option-list" id="coag-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">≥ 150</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="coag-control">
+              <button class="pill-option active" data-value="0">
+                <span>≥ 150</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">&lt; 150</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>&lt; 150</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">&lt; 100</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>&lt; 100</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">&lt; 50</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>&lt; 50</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">&lt; 20</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>&lt; 20</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
 
           <!-- 3. Central Nervous System -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-cns">🧠</span>
+            <div class="organ-card-title">
+              <span class="organ-badge purple">🧠</span>
               <div>
                 <h3>Central Nervous System</h3>
-                <span class="organ-unit">Glasgow Coma Scale (GCS)</span>
+                <span class="unit-label">Glasgow Coma Scale (GCS)</span>
               </div>
             </div>
-            <div class="option-list" id="cns-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">15</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="cns-control">
+              <button class="pill-option active" data-value="0">
+                <span>15</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">13 – 14</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>13 – 14</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">10 – 12</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>10 – 12</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">6 – 9</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>6 – 9</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">&lt; 6</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>&lt; 6</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
 
           <!-- 4. Liver -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-liver">🧪</span>
+            <div class="organ-card-title">
+              <span class="organ-badge amber">🧪</span>
               <div>
                 <h3>Liver</h3>
-                <span class="organ-unit">Bilirubin mg/dL [μmol/L]</span>
+                <span class="unit-label">Bilirubin mg/dL [μmol/L]</span>
               </div>
             </div>
-            <div class="option-list" id="liver-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">&lt; 1.2 [&lt; 20]</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="liver-control">
+              <button class="pill-option active" data-value="0">
+                <span>&lt; 1.2 [&lt; 20]</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">1.2 – 1.9 [20-32]</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>1.2 – 1.9 [20-32]</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">2.0 – 5.9 [33-101]</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>2.0 – 5.9 [33-101]</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">6.0 – 11.9 [102-204]</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>6.0 – 11.9 [102-204]</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">≥ 12.0 [&gt; 204]</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>≥ 12.0 [&gt; 204]</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
 
           <!-- 5. Cardiovascular -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-cardio">❤️</span>
+            <div class="organ-card-title">
+              <span class="organ-badge red">❤️</span>
               <div>
                 <h3>Cardiovascular</h3>
-                <span class="organ-unit">MAP & Vasopressor Doses (µg/kg/min)</span>
+                <span class="unit-label">Hypotension & Vasopressor Doses</span>
               </div>
             </div>
-            <div class="option-list" id="cardio-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">MAP ≥ 70 mmHg</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="cardio-control">
+              <button class="pill-option active" data-value="0">
+                <span>MAP ≥ 70 mmHg</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">MAP &lt; 70 mmHg</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>MAP &lt; 70 mmHg</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">Dopamine &lt; 5 or Dobutamine (any)</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>Dopamine &lt; 5 or Dobutamine (any)</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">Dopamine 5.1–15 / Epi ≤ 0.1 / Norepi ≤ 0.1</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>Dopamine 5.1–15 / Epi ≤ 0.1 / Norepi ≤ 0.1</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">Dopamine &gt; 15 / Epi &gt; 0.1 / Norepi &gt; 0.1</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>Dopamine &gt; 15 / Epi &gt; 0.1 / Norepi &gt; 0.1</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
 
           <!-- 6. Renal -->
           <div class="organ-card">
-            <div class="organ-header">
-              <span class="organ-icon icon-renal">💧</span>
+            <div class="organ-card-title">
+              <span class="organ-badge blue">💧</span>
               <div>
                 <h3>Renal</h3>
-                <span class="organ-unit">Creatinine mg/dL [μmol/L] or Urine Output</span>
+                <span class="unit-label">Creatinine mg/dL [μmol/L] or Urine Output</span>
               </div>
             </div>
-            <div class="option-list" id="renal-control">
-              <button class="option-btn active" data-value="0">
-                <span class="opt-text">&lt; 1.2 [&lt; 110]</span>
-                <span class="opt-score">0 pts</span>
+            <div class="pill-group" id="renal-control">
+              <button class="pill-option active" data-value="0">
+                <span>&lt; 1.2 [&lt; 110]</span>
+                <span class="score-tag">0 pts</span>
               </button>
-              <button class="option-btn" data-value="1">
-                <span class="opt-text">1.2 – 1.9 [110-170]</span>
-                <span class="opt-score">1 pt</span>
+              <button class="pill-option" data-value="1">
+                <span>1.2 – 1.9 [110-170]</span>
+                <span class="score-tag">1 pt</span>
               </button>
-              <button class="option-btn" data-value="2">
-                <span class="opt-text">2.0 – 3.4 [171-299]</span>
-                <span class="opt-score">2 pts</span>
+              <button class="pill-option" data-value="2">
+                <span>2.0 – 3.4 [171-299]</span>
+                <span class="score-tag">2 pts</span>
               </button>
-              <button class="option-btn" data-value="3">
-                <span class="opt-text">3.5 – 4.9 [300-440] or UOP &lt; 500 mL/day</span>
-                <span class="opt-score">3 pts</span>
+              <button class="pill-option" data-value="3">
+                <span>3.5 – 4.9 [300-440] or UOP &lt; 500 mL/day</span>
+                <span class="score-tag">3 pts</span>
               </button>
-              <button class="option-btn" data-value="4">
-                <span class="opt-text">≥ 5.0 [&gt; 440] or UOP &lt; 200 mL/day</span>
-                <span class="opt-score">4 pts</span>
+              <button class="pill-option" data-value="4">
+                <span>≥ 5.0 [&gt; 440] or UOP &lt; 200 mL/day</span>
+                <span class="score-tag">4 pts</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Copy Summary Card -->
-        <div class="summary-box">
-          <div class="summary-header">
+        <!-- Terminal Export Card -->
+        <div class="terminal-card margin-top-lg">
+          <div class="terminal-header">
             <div>
-              <h3>📋 Formatted Clinical Summary Output</h3>
-              <p>Ready for insertion into patient electronic health records (EHR)</p>
+              <h3>📋 Formatted Summary for EHR Copy</h3>
+              <p>Standardized clinical text output</p>
             </div>
-            <button class="btn btn-accent" id="btn-copy-sofa">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <button class="btn btn-primary btn-sm" id="btn-copy-sofa">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               Copy Summary
             </button>
           </div>
-          <pre class="code-terminal" id="sofa-summary-text"></pre>
+          <pre class="terminal-body" id="sofa-summary-text"></pre>
         </div>
       </section>
 
       <!-- TAB 2: KDIGO AKI CALCULATOR -->
-      <section id="tab-kdigo" class="tab-pane">
-        <div class="pane-banner">
+      <section id="tab-kdigo" class="tab-view">
+        <div class="view-header">
           <div>
-            <h2>KDIGO Acute Kidney Injury (AKI) Calculator</h2>
-            <p>Staging based on 2012 KDIGO guidelines (Serum Creatinine fold-change & Urine Output rate).</p>
+            <h2>KDIGO Acute Kidney Injury (AKI) Staging Calculator</h2>
+            <p>Determines AKI presence and stage based on Serum Creatinine baseline ratio, 48h change, & Urine Output.</p>
           </div>
-          <button class="btn btn-glass btn-sm" id="btn-reset-kdigo">
+          <button class="btn btn-ghost btn-sm" id="btn-reset-kdigo">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             Reset Form
           </button>
         </div>
 
-        <div class="kdigo-container">
-          <!-- Left: Input Form -->
-          <div class="kdigo-form-card">
-            <div class="card-section-header">
-              <span class="icon-chip">🧪</span>
-              <h3>Serum Creatinine Parameters</h3>
+        <div class="split-layout">
+          <!-- Inputs Column -->
+          <div class="panel-card">
+            <div class="card-section-title">
+              <span class="icon-bubble">🧪</span>
+              <div>
+                <h3>Serum Creatinine Parameters</h3>
+                <span class="sub-text">Values in mg/dL</span>
+              </div>
             </div>
-            <div class="form-grid">
-              <div class="input-field">
-                <label for="kdigo-curr-creat">Current Creatinine (mg/dL)</label>
+
+            <div class="input-stack">
+              <div class="field-box">
+                <label for="kdigo-curr-creat">Current Serum Creatinine (mg/dL)</label>
                 <input type="number" id="kdigo-curr-creat" value="1.0" step="0.1" min="0">
               </div>
-              <div class="input-field">
-                <label for="kdigo-base-creat">Baseline Creatinine (mg/dL)</label>
+              <div class="field-box">
+                <label for="kdigo-base-creat">Baseline Serum Creatinine (mg/dL)</label>
                 <input type="number" id="kdigo-base-creat" value="1.0" step="0.1" min="0">
               </div>
-              <div class="input-field">
-                <label for="kdigo-prev-creat">Previous Creatinine (within 48h)</label>
+              <div class="field-box">
+                <label for="kdigo-prev-creat">Previous Creatinine (within 48 hrs)</label>
                 <input type="number" id="kdigo-prev-creat" value="1.0" step="0.1" min="0">
               </div>
             </div>
 
-            <div class="card-section-header margin-top">
-              <span class="icon-chip">💧</span>
-              <h3>Urine Output Parameters</h3>
+            <div class="card-section-title margin-top-lg">
+              <span class="icon-bubble">💧</span>
+              <div>
+                <h3>Urine Output Parameters</h3>
+                <span class="sub-text">Oliguria criteria tracking</span>
+              </div>
             </div>
-            <div class="form-grid">
-              <div class="input-field">
-                <label for="kdigo-uvol">Urine Volume (mL)</label>
+
+            <div class="input-stack">
+              <div class="field-box">
+                <label for="kdigo-uvol">Total Urine Volume (mL)</label>
                 <input type="number" id="kdigo-uvol" value="500" step="10" min="0">
               </div>
-              <div class="input-field">
+              <div class="field-box">
                 <label for="kdigo-weight">Patient Weight (kg)</label>
                 <input type="number" id="kdigo-weight" value="70" step="1" min="1">
               </div>
-              <div class="input-field">
-                <label for="kdigo-duration">Collection Time (hours)</label>
+              <div class="field-box">
+                <label for="kdigo-duration">Collection Duration (hours)</label>
                 <input type="number" id="kdigo-duration" value="12" step="1" min="1">
               </div>
             </div>
           </div>
 
-          <!-- Right: Diagnostic Evaluation Panel -->
-          <div class="kdigo-eval-card">
-            <h3>📊 Criteria Evaluation</h3>
-
-            <div class="eval-grid">
-              <div class="eval-box" id="crit-1-box">
-                <div class="eval-header">
-                  <span>Criterion 1</span>
-                  <span class="eval-pill" id="crit-1-pill">Not Met</span>
-                </div>
-                <p class="eval-label">≥ 1.5× baseline creatinine</p>
-                <div class="eval-val" id="crit-1-status">Ratio: 1.00x</div>
-              </div>
-
-              <div class="eval-box" id="crit-2-box">
-                <div class="eval-header">
-                  <span>Criterion 2</span>
-                  <span class="eval-pill" id="crit-2-pill">Not Met</span>
-                </div>
-                <p class="eval-label">≥ 0.3 mg/dL increase (48h)</p>
-                <div class="eval-val" id="crit-2-status">Diff: +0.00</div>
-              </div>
-
-              <div class="eval-box" id="crit-3-box">
-                <div class="eval-header">
-                  <span>Criterion 3</span>
-                  <span class="eval-pill" id="crit-3-pill">Not Met</span>
-                </div>
-                <p class="eval-label">UOP &lt; 0.5 ml/kg/hr</p>
-                <div class="eval-val" id="crit-3-status">Rate: 0.595 ml/kg/h</div>
+          <!-- Evaluation Column -->
+          <div class="panel-card">
+            <div class="card-section-title">
+              <span class="icon-bubble">📊</span>
+              <div>
+                <h3>Diagnostic Evaluation</h3>
+                <span class="sub-text">2012 KDIGO Guidelines</span>
               </div>
             </div>
 
-            <!-- AKI Final Diagnostic Banner -->
-            <div id="kdigo-final-status" class="status-banner banner-normal margin-top">
-              <div class="banner-icon">✅</div>
+            <div class="criterion-stack">
+              <div class="crit-row" id="crit-1-box">
+                <div class="crit-row-header">
+                  <span class="crit-title">Criterion 1: Fold Change</span>
+                  <span class="crit-tag" id="crit-1-pill">Not Met</span>
+                </div>
+                <p class="crit-desc">≥ 1.5× baseline creatinine level</p>
+                <span class="crit-metric" id="crit-1-status">Ratio: 1.00x baseline</span>
+              </div>
+
+              <div class="crit-row" id="crit-2-box">
+                <div class="crit-row-header">
+                  <span class="crit-title">Criterion 2: 48h Differential</span>
+                  <span class="crit-tag" id="crit-2-pill">Not Met</span>
+                </div>
+                <p class="crit-desc">≥ 0.3 mg/dL increase within 48 hours</p>
+                <span class="crit-metric" id="crit-2-status">Diff: +0.00 mg/dL</span>
+              </div>
+
+              <div class="crit-row" id="crit-3-box">
+                <div class="crit-row-header">
+                  <span class="crit-title">Criterion 3: Urine Output Rate</span>
+                  <span class="crit-tag" id="crit-3-pill">Not Met</span>
+                </div>
+                <p class="crit-desc">&lt; 0.5 ml/kg/hr for 6+ hours</p>
+                <span class="crit-metric" id="crit-3-status">Rate: 0.595 ml/kg/hr</span>
+              </div>
+            </div>
+
+            <div id="kdigo-final-status" class="alert-banner alert-success margin-top-lg">
+              <div class="alert-icon-wrap">✅</div>
               <div>
                 <h4>No AKI Criteria Met</h4>
                 <p>The patient parameters do not meet KDIGO criteria for Acute Kidney Injury.</p>
               </div>
             </div>
 
-            <div class="summary-box margin-top">
-              <div class="summary-header">
+            <div class="terminal-card margin-top-lg">
+              <div class="terminal-header">
                 <span>📋 Output Summary</span>
-                <button class="btn btn-glass btn-sm" id="btn-copy-kdigo">Copy Summary</button>
+                <button class="btn btn-ghost btn-sm" id="btn-copy-kdigo">Copy Summary</button>
               </div>
-              <pre class="code-terminal" id="kdigo-summary-text"></pre>
+              <pre class="terminal-body" id="kdigo-summary-text"></pre>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: AI DRUG EXTRACTOR -->
-      <section id="tab-ai" class="tab-pane">
-        <div class="pane-banner">
+      <!-- TAB 3: DRUG EXTRACTOR & DISEASE MAPPER -->
+      <section id="tab-drugs" class="tab-view">
+        <div class="view-header">
           <div>
-            <h2>AI Drug Extractor & Indication Mapper</h2>
-            <p>Automatically parse clinical notes with Google Gemini AI to extract drug regimens and indications.</p>
+            <h2>Clinical Drug Extractor & Disease Mapper</h2>
+            <p>Instant client-side clinical NLP engine. Parses medical text, extracts drug regimens, and maps clinical indications with zero API required.</p>
           </div>
-          <button class="btn btn-accent btn-sm" id="btn-load-sample-ai">
+          <button class="btn btn-cyan btn-sm" id="btn-load-sample">
             ⚡ Load Sample Clinical Note
           </button>
         </div>
 
-        <div class="ai-editor-card">
-          <label for="ai-text-input" class="editor-label">Paste Patient Medical Text / Admission Note:</label>
-          <textarea id="ai-text-input" rows="7" placeholder="e.g. Patient presented with severe hypertension and acute coronary syndrome. Initiated amlodipine 10mg daily, lisinopril 20mg daily, and atorvastatin 80mg. Apixaban maintained for chronic atrial fibrillation..."></textarea>
+        <div class="panel-card">
+          <label for="drug-text-input" class="field-label">Paste Patient Medical Note / Progress Text:</label>
+          <textarea id="drug-text-input" rows="7" placeholder="e.g. Patient presented with hypertensive crisis and acute myocardial infarction. Started on Lisinopril 20mg daily, Amlodipine 10mg daily, Atorvastatin 80mg daily, and Metoprolol 50mg. Apixaban 5mg BID maintained for chronic atrial fibrillation..."></textarea>
 
-          <div class="editor-actions">
-            <button class="btn btn-glass" id="btn-clear-ai">Clear Text</button>
-            <button class="btn btn-primary" id="btn-extract-ai">
-              <span>✨</span> Extract Medications with AI
+          <div class="flex-end-actions">
+            <button class="btn btn-ghost" id="btn-clear-drug">Clear Text</button>
+            <button class="btn btn-primary" id="btn-extract-drug">
+              <span>💊</span> Parse & Extract Medications
             </button>
           </div>
         </div>
 
-        <!-- AI Output Results Card -->
-        <div class="ai-results-card margin-top" id="ai-results-card" style="display: none;">
-          <div class="results-header">
-            <h3>💊 Detected Medications & Indications</h3>
-            <span class="ai-badge">Gemini 1.5 Flash</span>
+        <div class="panel-card margin-top-lg" id="drug-results-card" style="display: none;">
+          <div class="results-top-bar">
+            <h3>💊 Detected Medications & Indications (<span id="drug-count-badge">0</span>)</h3>
+            <span class="engine-badge">Built-in Clinical NLP Engine</span>
           </div>
 
-          <div id="ai-loading-spinner" class="loading-state" style="display: none;">
-            <div class="spinner"></div>
-            <span>Analyzing clinical text with Gemini AI...</span>
-          </div>
-
-          <div class="table-wrap">
-            <table class="ai-table">
+          <div class="table-responsive margin-top-md">
+            <table class="custom-table">
               <thead>
                 <tr>
-                  <th>Detected Drug</th>
-                  <th>Related Disease / Indication</th>
+                  <th>Detected Drug Name</th>
+                  <th>Primary Clinical Indication / Related Disease</th>
                 </tr>
               </thead>
-              <tbody id="ai-table-body"></tbody>
+              <tbody id="drug-table-body"></tbody>
             </table>
           </div>
         </div>
       </section>
 
       <!-- TAB 4: TIME INTERVAL CALCULATOR -->
-      <section id="tab-time" class="tab-pane">
-        <div class="pane-banner">
+      <section id="tab-time" class="tab-view">
+        <div class="view-header">
           <div>
             <h2>Time Interval Duration Calculator</h2>
-            <p>Calculate exact clinical elapsed duration (days, hours, minutes) between two timestamps.</p>
+            <p>Compute exact clinical elapsed time (days, hours, minutes) between two timestamps.</p>
           </div>
-          <div class="preset-group">
-            <button class="preset-btn" data-hours="12">Last 12h</button>
-            <button class="preset-btn" data-hours="24">Last 24h</button>
-            <button class="preset-btn" data-hours="48">Last 48h</button>
+          <div class="preset-pill-group">
+            <button class="btn-preset" data-hours="12">Last 12 Hours</button>
+            <button class="btn-preset" data-hours="24">Last 24 Hours</button>
+            <button class="btn-preset" data-hours="48">Last 48 Hours</button>
+            <button class="btn-preset" data-hours="72">Last 72 Hours</button>
           </div>
         </div>
 
-        <div class="time-grid">
-          <div class="time-card">
-            <span class="time-icon">🕒</span>
-            <h3>Start Timestamp</h3>
-            <div class="input-field margin-top-sm">
+        <div class="split-layout">
+          <div class="panel-card">
+            <div class="card-section-title">
+              <span class="icon-bubble">🕒</span>
+              <div>
+                <h3>Start Timestamp</h3>
+                <span class="sub-text">Beginning of clinical window</span>
+              </div>
+            </div>
+            <div class="field-box margin-top-md">
               <input type="datetime-local" id="time-start">
             </div>
           </div>
 
-          <div class="time-card">
-            <span class="time-icon">⌛</span>
-            <h3>End Timestamp</h3>
-            <div class="input-field margin-top-sm">
+          <div class="panel-card">
+            <div class="card-section-title">
+              <span class="icon-bubble">⌛</span>
+              <div>
+                <h3>End Timestamp</h3>
+                <span class="sub-text">End of clinical window</span>
+              </div>
+            </div>
+            <div class="field-box margin-top-md">
               <input type="datetime-local" id="time-end">
             </div>
           </div>
         </div>
 
-        <!-- Hero Duration Display -->
-        <div class="duration-banner margin-top">
-          <span class="dur-label">Total Elapsed Duration</span>
-          <div class="dur-value" id="time-elapsed-display">0 days, 0 hours, 0 minutes</div>
+        <div class="hero-duration-card margin-top-lg">
+          <span class="dur-subtitle">Total Elapsed Clinical Duration</span>
+          <div class="dur-primary-val" id="time-elapsed-display">0 days, 0 hours, 0 minutes</div>
 
-          <div class="breakdown-grid margin-top">
-            <div class="b-card">
-              <span class="b-title">Total Hours</span>
-              <span class="b-val" id="time-hours-display">0.00 h</span>
+          <div class="duration-metrics-grid margin-top-lg">
+            <div class="dur-metric-box">
+              <span class="dur-m-title">Total Elapsed Hours</span>
+              <span class="dur-m-val" id="time-hours-display">0.00 h</span>
             </div>
-            <div class="b-card">
-              <span class="b-title">Total Minutes</span>
-              <span class="b-val" id="time-minutes-display">0 min</span>
+            <div class="dur-metric-box">
+              <span class="dur-m-title">Total Elapsed Minutes</span>
+              <span class="dur-m-val" id="time-minutes-display">0 min</span>
             </div>
-            <div class="b-card">
-              <span class="b-title">Total Seconds</span>
-              <span class="b-val" id="time-seconds-display">0 s</span>
+            <div class="dur-metric-box">
+              <span class="dur-m-title">Total Elapsed Seconds</span>
+              <span class="dur-m-val" id="time-seconds-display">0 s</span>
             </div>
           </div>
         </div>
       </section>
 
       <!-- TAB 5: DOCUMENT MANAGER -->
-      <section id="tab-docs" class="tab-pane">
-        <div class="pane-banner">
+      <section id="tab-docs" class="tab-view">
+        <div class="view-header">
           <div>
             <h2>Document Upload & Storage</h2>
-            <p>Upload clinical documents, labs, and diagnostic scans for local session reference.</p>
+            <p>Upload clinical reference files, lab results, and patient charts stored locally for active session.</p>
           </div>
         </div>
 
-        <div class="dropzone-card" id="drop-zone">
-          <div class="dz-icon">📁</div>
-          <h3>Drag & Drop files here, or click to browse</h3>
-          <p>Supports PDFs, Images (PNG, JPG), Lab TXT reports</p>
+        <div class="dropzone-box" id="drop-zone">
+          <div class="dz-cloud-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Drag & Drop clinical files here</h3>
+          <p>Supports PDFs, Images (PNG, JPG), Lab reports & text documents</p>
+          <button class="btn btn-ghost btn-sm margin-top-sm" type="button">Browse Files</button>
           <input type="file" id="file-input" multiple style="display: none;">
         </div>
 
-        <div class="docs-list-card margin-top">
-          <h3>📋 Session Documents</h3>
-          <ul class="file-list" id="file-list">
-            <li class="empty-msg">No documents uploaded in this session.</li>
+        <div class="panel-card margin-top-lg">
+          <div class="card-section-title">
+            <span class="icon-bubble">📂</span>
+            <div>
+              <h3>Session Documents</h3>
+              <span class="sub-text">Uploaded clinical reference files</span>
+            </div>
+          </div>
+
+          <ul class="file-list-group" id="file-list">
+            <li class="empty-file-row">No documents uploaded in this session yet.</li>
           </ul>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- API KEY MODAL DRAWER -->
-  <div class="modal-backdrop" id="key-modal" style="display: none;">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚙️ Gemini API Key Configuration</h3>
-        <button class="close-btn" id="close-key-modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Enter your Google Gemini API Key to enable AI-powered medication extraction and disease mapping.</p>
-        <div class="input-field margin-top-sm">
-          <label for="api-key-input">Gemini API Key</label>
-          <input type="password" id="api-key-input" placeholder="AIzaSy..." autocomplete="off">
-        </div>
-        <div id="api-key-modal-status" class="status-msg-box margin-top-sm">
-          ⚠️ Key not configured (AI fallback active)
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="save-key-btn">Save Key</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Toast Notification -->
-  <div id="toast" class="toast-notification">Copied to clipboard!</div>
+  <div id="toast" class="toast-popup">Copied to clipboard!</div>
 
   <script src="app.js"></script>
 </body>
