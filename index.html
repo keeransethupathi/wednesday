@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Calculator & Tools</title>
+  <meta name="description" content="Medical Calculator suite including SOFA Score, KDIGO AKI, AI Drug Extractor, Time Interval Calculator, and Document Management.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚕️</div>
+        <div>
+          <h2>MedCalc Suite</h2>
+          <span class="badge">Vercel & Streamlit Ready</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>⚙️ Settings</h3>
+        <div class="form-group">
+          <label for="api-key-input">Gemini API Key</label>
+          <input type="password" id="api-key-input" placeholder="Enter Gemini API Key..." />
+          <p class="help-text">Required for AI Drug Extractor tab.</p>
+        </div>
+        <div id="api-key-status" class="status-indicator status-warning">
+          <span>⚠️</span> Key not set (AI features limited)
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <p>Medical Decision Support System</p>
+        <div class="badge-row">
+          <span class="pill">v2.5</span>
+          <span class="pill">Gemini AI</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="app-header">
+        <h1>⚕️ Medical Calculator & Tools</h1>
+        <p class="subtitle">Evidence-based clinical decision algorithms and AI extraction tools</p>
+      </header>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="tab-sofa" id="tab-btn-sofa">
+          <span>🫁</span> SOFA Score Calculator
+        </button>
+        <button class="tab-btn" data-tab="tab-kdigo" id="tab-btn-kdigo">
+          <span>💧</span> KDIGO AKI Calculator
+        </button>
+        <button class="tab-btn" data-tab="tab-ai" id="tab-btn-ai">
+          <span>🧠</span> AI Drug Extractor
+        </button>
+        <button class="tab-btn" data-tab="tab-time" id="tab-btn-time">
+          <span>⏳</span> Time Interval Calculator
+        </button>
+        <button class="tab-btn" data-tab="tab-docs" id="tab-btn-docs">
+          <span>📂</span> Document Manager
+        </button>
+      </nav>
+
+      <!-- TAB 1: SOFA Calculator -->
+      <section id="tab-sofa" class="tab-panel active">
+        <div class="panel-header">
+          <h2>Sequential Organ Failure Assessment (SOFA) Score</h2>
+          <p>Predicts ICU mortality risk based on organ dysfunction across 6 vital physiological systems.</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- Left Column -->
+          <div class="card">
+            <div class="section-title">🫁 Respiration (PaO2/FiO2 ratio, mmHg)</div>
+            <div class="segmented-control" id="resp-control">
+              <button class="segment-btn active" data-value="0">≥ 400 (0 pts)</button>
+              <button class="segment-btn" data-value="1">&lt; 400 (1 pt)</button>
+              <button class="segment-btn" data-value="2">&lt; 300 (2 pts)</button>
+              <button class="segment-btn" data-value="3">&lt; 200 + resp (3 pts)</button>
+              <button class="segment-btn" data-value="4">&lt; 100 + resp (4 pts)</button>
+            </div>
+
+            <div class="section-title margin-top">🩸 Coagulation (Platelets ×10³/µL)</div>
+            <div class="segmented-control" id="coag-control">
+              <button class="segment-btn active" data-value="0">≥ 150 (0 pts)</button>
+              <button class="segment-btn" data-value="1">&lt; 150 (1 pt)</button>
+              <button class="segment-btn" data-value="2">&lt; 100 (2 pts)</button>
+              <button class="segment-btn" data-value="3">&lt; 50 (3 pts)</button>
+              <button class="segment-btn" data-value="4">&lt; 20 (4 pts)</button>
+            </div>
+
+            <div class="section-title margin-top">🧠 Central Nervous System (GCS Score)</div>
+            <div class="segmented-control" id="cns-control">
+              <button class="segment-btn active" data-value="0">15 (0 pts)</button>
+              <button class="segment-btn" data-value="1">13–14 (1 pt)</button>
+              <button class="segment-btn" data-value="2">10–12 (2 pts)</button>
+              <button class="segment-btn" data-value="3">6–9 (3 pts)</button>
+              <button class="segment-btn" data-value="4">&lt; 6 (4 pts)</button>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="card">
+            <div class="section-title">🧪 Liver (Bilirubin mg/dL [μmol/L])</div>
+            <div class="segmented-control" id="liver-control">
+              <button class="segment-btn active" data-value="0">&lt; 1.2 [&lt; 20] (0 pts)</button>
+              <button class="segment-btn" data-value="1">1.2–1.9 [20-32] (1 pt)</button>
+              <button class="segment-btn" data-value="2">2.0–5.9 [33-101] (2 pts)</button>
+              <button class="segment-btn" data-value="3">6.0–11.9 [102-204] (3 pts)</button>
+              <button class="segment-btn" data-value="4">≥ 12.0 [&gt; 204] (4 pts)</button>
+            </div>
+
+            <div class="section-title margin-top">❤️ Cardiovascular (Vasopressor / MAP)</div>
+            <div class="segmented-control" id="cardio-control">
+              <button class="segment-btn active" data-value="0">MAP ≥ 70 (0 pts)</button>
+              <button class="segment-btn" data-value="1">MAP &lt; 70 (1 pt)</button>
+              <button class="segment-btn" data-value="2">Dop &lt; 5 / Dobutamine (2 pts)</button>
+              <button class="segment-btn" data-value="3">Dop 5.1–15 / Epi/Norepi ≤ 0.1 (3 pts)</button>
+              <button class="segment-btn" data-value="4">Dop &gt; 15 / Epi/Norepi &gt; 0.1 (4 pts)</button>
+            </div>
+
+            <div class="section-title margin-top">💧 Renal (Creatinine mg/dL or UOP)</div>
+            <div class="segmented-control" id="renal-control">
+              <button class="segment-btn active" data-value="0">&lt; 1.2 [&lt; 110] (0 pts)</button>
+              <button class="segment-btn" data-value="1">1.2–1.9 [110-170] (1 pt)</button>
+              <button class="segment-btn" data-value="2">2.0–3.4 [171-299] (2 pts)</button>
+              <button class="segment-btn" data-value="3">3.5–4.9 [300-440] / UOP &lt; 500 (3 pts)</button>
+              <button class="segment-btn" data-value="4">≥ 5.0 [&gt; 440] / UOP &lt; 200 (4 pts)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score Results -->
+        <div class="results-card">
+          <div class="metric-row">
+            <div class="metric-box">
+              <span class="metric-label">Total SOFA Score</span>
+              <span class="metric-value" id="sofa-total-score">0</span>
+            </div>
+            <div class="metric-box highlighted">
+              <span class="metric-label">Estimated Mortality Risk</span>
+              <span class="metric-value" id="sofa-mortality">~0.0%</span>
+            </div>
+          </div>
+
+          <div class="summary-container">
+            <div class="summary-header">
+              <span>📋 Output Summary</span>
+              <button class="btn btn-secondary btn-sm" id="btn-copy-sofa">📋 Copy Summary</button>
+            </div>
+            <pre class="code-block" id="sofa-summary-text"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: KDIGO AKI Calculator -->
+      <section id="tab-kdigo" class="tab-panel">
+        <div class="panel-header">
+          <h2>Kidney Disease: Improving Global Outcomes (KDIGO) AKI Calculator</h2>
+          <p>Determines Acute Kidney Injury staging based on serum creatinine ratios and urine output rates.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>🧪 Serum Creatinine Criteria</h3>
+            <div class="form-group margin-top">
+              <label for="kdigo-curr-creat">Current Serum Creatinine (mg/dL)</label>
+              <input type="number" id="kdigo-curr-creat" value="1.0" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="kdigo-base-creat">Baseline Serum Creatinine (mg/dL)</label>
+              <input type="number" id="kdigo-base-creat" value="1.0" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="kdigo-prev-creat">Previous Creatinine (within 48h) (mg/dL)</label>
+              <input type="number" id="kdigo-prev-creat" value="1.0" step="0.1" min="0">
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>💧 Urine Output Criteria</h3>
+            <div class="form-group margin-top">
+              <label for="kdigo-uvol">Urine Volume (mL)</label>
+              <input type="number" id="kdigo-uvol" value="500" step="10" min="0">
+            </div>
+            <div class="form-group">
+              <label for="kdigo-weight">Patient Weight (kg)</label>
+              <input type="number" id="kdigo-weight" value="70" step="1" min="1">
+            </div>
+            <div class="form-group">
+              <label for="kdigo-duration">Collection Duration (hours)</label>
+              <input type="number" id="kdigo-duration" value="12" step="1" min="1">
+            </div>
+          </div>
+        </div>
+
+        <div class="results-card margin-top">
+          <h3>📊 Criteria Evaluation</h3>
+          <div class="grid-3 margin-top">
+            <div class="criterion-box" id="crit-1-box">
+              <div class="crit-title">Criterion 1</div>
+              <div class="crit-desc">≥ 1.5× baseline</div>
+              <div class="crit-status" id="crit-1-status">Not Met (Ratio: 1.00)</div>
+            </div>
+            <div class="criterion-box" id="crit-2-box">
+              <div class="crit-title">Criterion 2</div>
+              <div class="crit-desc">≥ 0.3 mg/dL increase (48h)</div>
+              <div class="crit-status" id="crit-2-status">Not Met (Diff: 0.00)</div>
+            </div>
+            <div class="criterion-box" id="crit-3-box">
+              <div class="crit-title">Criterion 3</div>
+              <div class="crit-desc">UOP &lt; 0.5 ml/kg/hr</div>
+              <div class="crit-status" id="crit-3-status">Not Met (Rate: 0.595)</div>
+            </div>
+          </div>
+
+          <div id="kdigo-final-status" class="alert-box alert-success margin-top">
+            <strong>✅ No AKI Criteria Met</strong>
+            <p>The provided values do not meet KDIGO criteria for Acute Kidney Injury.</p>
+          </div>
+
+          <div class="summary-container margin-top">
+            <div class="summary-header">
+              <span>📋 Output Summary</span>
+              <button class="btn btn-secondary btn-sm" id="btn-copy-kdigo">📋 Copy Summary</button>
+            </div>
+            <pre class="code-block" id="kdigo-summary-text"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: AI Drug Extractor -->
+      <section id="tab-ai" class="tab-panel">
+        <div class="panel-header">
+          <h2>Drug Extractor & Disease Mapper (AI-Powered)</h2>
+          <p>Extract medication names and map to clinical indications using Gemini AI.</p>
+        </div>
+
+        <div class="card">
+          <div class="form-group">
+            <label for="ai-text-input">Paste Clinical Record or Medical Paragraph:</label>
+            <textarea id="ai-text-input" rows="6" placeholder="e.g. Patient presented with severe hypertension and acute coronary syndrome. Initiated amlodipine 10mg daily, lisinopril 20mg daily, and atorvastatin 80mg. Apixaban maintained for chronic atrial fibrillation..."></textarea>
+          </div>
+          <button class="btn btn-primary" id="btn-extract-ai">
+            <span>🧠</span> Extract Medications with AI
+          </button>
+        </div>
+
+        <div class="card margin-top" id="ai-results-container" style="display: none;">
+          <h3>💊 Extracted Medications & Indications</h3>
+          <div id="ai-loading" class="spinner-container" style="display: none;">
+            <div class="spinner"></div>
+            <span>Analyzing text with Gemini AI...</span>
+          </div>
+          <div class="table-container margin-top">
+            <table class="data-table" id="ai-table">
+              <thead>
+                <tr>
+                  <th>Detected Drug</th>
+                  <th>Related Disease / Indication</th>
+                </tr>
+              </thead>
+              <tbody id="ai-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: Time Interval Calculator -->
+      <section id="tab-time" class="tab-panel">
+        <div class="panel-header">
+          <h2>⏳ Time Interval Duration Calculator</h2>
+          <p>Calculate exact elapsed duration (days, hours, minutes) between clinical timestamps.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Start Timestamp</h3>
+            <div class="form-group margin-top">
+              <label for="time-start">Start Date & Time</label>
+              <input type="datetime-local" id="time-start">
+            </div>
+          </div>
+          <div class="card">
+            <h3>End Timestamp</h3>
+            <div class="form-group margin-top">
+              <label for="time-end">End Date & Time</label>
+              <input type="datetime-local" id="time-end">
+            </div>
+          </div>
+        </div>
+
+        <div class="results-card margin-top">
+          <div class="metric-row">
+            <div class="metric-box highlighted full-width">
+              <span class="metric-label">Total Elapsed Duration</span>
+              <span class="metric-value" id="time-elapsed-display">0 days, 0 hours, 0 minutes</span>
+            </div>
+          </div>
+
+          <div class="grid-3 margin-top">
+            <div class="metric-box">
+              <span class="metric-label">Total Hours</span>
+              <span class="metric-value-sm" id="time-hours-display">0.00 h</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Total Minutes</span>
+              <span class="metric-value-sm" id="time-minutes-display">0 min</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Total Seconds</span>
+              <span class="metric-value-sm" id="time-seconds-display">0 s</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: Document Manager -->
+      <section id="tab-docs" class="tab-panel">
+        <div class="panel-header">
+          <h2>📂 Document Upload & Storage</h2>
+          <p>Upload clinical documents, reports, or images stored locally in session storage.</p>
+        </div>
+
+        <div class="card">
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">📁</div>
+            <p>Drag & drop clinical documents here, or <strong>browse files</strong></p>
+            <input type="file" id="file-input" multiple style="display: none;">
+          </div>
+        </div>
+
+        <div class="card margin-top">
+          <h3>📋 Saved Documents</h3>
+          <ul class="file-list" id="file-list">
+            <li class="empty-list">No documents uploaded in this session yet.</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
