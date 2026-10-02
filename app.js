@@ -1,44 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Tab Switching Logic
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanels = document.querySelectorAll('.tab-panel');
+  // =========================================
+  // TAB NAVIGATION SYSTEM
+  // =========================================
+  const navTabs = document.querySelectorAll('.nav-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.getAttribute('data-tab');
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-tab');
 
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabPanels.forEach(p => p.classList.remove('active'));
+      navTabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
 
-      btn.classList.add('active');
-      document.getElementById(targetTab).classList.add('active');
+      tab.classList.add('active');
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.classList.add('active');
     });
   });
 
-  // API Key Input
+  // =========================================
+  // API KEY MANAGEMENT
+  // =========================================
   const apiKeyInput = document.getElementById('api-key-input');
   const apiKeyStatus = document.getElementById('api-key-status');
+  const toggleKeyBtn = document.getElementById('toggle-key-visibility');
 
-  apiKeyInput.addEventListener('input', () => {
+  if (toggleKeyBtn && apiKeyInput) {
+    toggleKeyBtn.addEventListener('click', () => {
+      const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      apiKeyInput.setAttribute('type', type);
+    });
+  }
+
+  const updateApiKeyStatus = () => {
     const val = apiKeyInput.value.trim();
     if (val) {
       apiKeyStatus.className = 'status-indicator status-success';
-      apiKeyStatus.innerHTML = '<span>✅</span> API Key active for session';
+      apiKeyStatus.innerHTML = '<span class="dot"></span><span class="status-msg">API Key Active</span>';
     } else {
       apiKeyStatus.className = 'status-indicator status-warning';
-      apiKeyStatus.innerHTML = '<span>⚠️</span> Key not set (AI features limited)';
+      apiKeyStatus.innerHTML = '<span class="dot"></span><span class="status-msg">API Key Not Configured</span>';
     }
-  });
+  };
+
+  apiKeyInput.addEventListener('input', updateApiKeyStatus);
 
   // =========================================
-  // 1. SOFA SCORE CALCULATOR
+  // 1. SOFA CALCULATOR ENGINE
   // =========================================
   const sofaState = { resp: 0, coag: 0, cns: 0, liver: 0, cardio: 0, renal: 0 };
 
-  const setupSegmentedControl = (containerId, key) => {
+  const bindSegmentedGroup = (containerId, key) => {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const btns = container.querySelectorAll('.segment-btn');
+    const btns = container.querySelectorAll('.seg-btn');
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         btns.forEach(b => b.classList.remove('active'));
@@ -49,16 +64,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  setupSegmentedControl('resp-control', 'resp');
-  setupSegmentedControl('coag-control', 'coag');
-  setupSegmentedControl('cns-control', 'cns');
-  setupSegmentedControl('liver-control', 'liver');
-  setupSegmentedControl('cardio-control', 'cardio');
-  setupSegmentedControl('renal-control', 'renal');
+  bindSegmentedGroup('resp-control', 'resp');
+  bindSegmentedGroup('coag-control', 'coag');
+  bindSegmentedGroup('cns-control', 'cns');
+  bindSegmentedGroup('liver-control', 'liver');
+  bindSegmentedGroup('cardio-control', 'cardio');
+  bindSegmentedGroup('renal-control', 'renal');
 
   const calculateSOFA = () => {
     const total = sofaState.resp + sofaState.coag + sofaState.cns + sofaState.liver + sofaState.cardio + sofaState.renal;
-    document.getElementById('sofa-total-score').innerText = total;
+    const totalEl = document.getElementById('sofa-total-score');
+    if (totalEl) totalEl.innerText = total;
 
     let mortality = "0.0%";
     if (total <= 1) mortality = "0.0%";
@@ -70,7 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (total <= 14) mortality = "95.2%";
     else mortality = ">95.2%";
 
-    document.getElementById('sofa-mortality').innerText = `~${mortality}`;
+    const mortalityEl = document.getElementById('sofa-mortality');
+    if (mortalityEl) mortalityEl.innerText = `~${mortality}`;
 
     const summaryText = 
 `SOFA SCORE
@@ -82,21 +99,41 @@ Glasgow Coma Scale Score - ${sofaState.cns}
 Creatinine (mg/dl)- ${sofaState.renal}
 Total - ${total}`;
 
-    document.getElementById('sofa-summary-text').innerText = summaryText;
+    const summaryEl = document.getElementById('sofa-summary-text');
+    if (summaryEl) summaryEl.innerText = summaryText;
   };
 
   calculateSOFA();
+
+  document.getElementById('btn-reset-sofa').addEventListener('click', () => {
+    Object.keys(sofaState).forEach(k => sofaState[k] = 0);
+    const groups = ['resp-control', 'coag-control', 'cns-control', 'liver-control', 'cardio-control', 'renal-control'];
+    groups.forEach(id => {
+      const container = document.getElementById(id);
+      if (container) {
+        const btns = container.querySelectorAll('.seg-btn');
+        btns.forEach((b, idx) => {
+          if (idx === 0) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      }
+    });
+    calculateSOFA();
+  });
 
   document.getElementById('btn-copy-sofa').addEventListener('click', () => {
     const text = document.getElementById('sofa-summary-text').innerText;
     navigator.clipboard.writeText(text);
     const btn = document.getElementById('btn-copy-sofa');
     btn.innerText = '✅ Copied!';
-    setTimeout(() => btn.innerText = '📋 Copy Summary', 2000);
+    setTimeout(() => btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Text
+    `, 2000);
   });
 
   // =========================================
-  // 2. KDIGO AKI CALCULATOR
+  // 2. KDIGO AKI CALCULATOR ENGINE
   // =========================================
   const currCreatInput = document.getElementById('kdigo-curr-creat');
   const baseCreatInput = document.getElementById('kdigo-base-creat');
@@ -123,25 +160,37 @@ Total - ${total}`;
     let crit3Met = uopRate < 0.5;
 
     const crit1El = document.getElementById('crit-1-status');
-    crit1El.innerText = `${crit1Met ? 'MET' : 'Not Met'} (Ratio: ${crit1Ratio.toFixed(2)})`;
-    crit1El.style.color = crit1Met ? 'var(--success)' : '#38bdf8';
+    crit1El.innerText = `${crit1Met ? 'MET' : 'Not Met'} (${crit1Ratio.toFixed(2)}x)`;
+    crit1El.style.color = crit1Met ? 'var(--accent-emerald)' : 'var(--accent-cyan)';
 
     const crit2El = document.getElementById('crit-2-status');
-    crit2El.innerText = `${crit2Met ? 'MET' : 'Not Met'} (Diff: ${crit2Diff.toFixed(2)})`;
-    crit2El.style.color = crit2Met ? 'var(--success)' : '#38bdf8';
+    crit2El.innerText = `${crit2Met ? 'MET' : 'Not Met'} (+${crit2Diff.toFixed(2)})`;
+    crit2El.style.color = crit2Met ? 'var(--accent-emerald)' : 'var(--accent-cyan)';
 
     const crit3El = document.getElementById('crit-3-status');
-    crit3El.innerText = `${crit3Met ? 'MET' : 'Not Met'} (Rate: ${uopRate.toFixed(3)})`;
-    crit3El.style.color = crit3Met ? 'var(--success)' : '#38bdf8';
+    crit3El.innerText = `${crit3Met ? 'MET' : 'Not Met'} (${uopRate.toFixed(3)} ml/kg/h)`;
+    crit3El.style.color = crit3Met ? 'var(--accent-emerald)' : 'var(--accent-cyan)';
 
     const isAki = crit1Met || crit2Met || crit3Met;
     const statusBox = document.getElementById('kdigo-final-status');
     if (isAki) {
-      statusBox.className = 'alert-box alert-danger margin-top';
-      statusBox.innerHTML = '<strong>⚠️ AKI Criteria MET</strong><p>Patient meets KDIGO criteria for Acute Kidney Injury.</p>';
+      statusBox.className = 'alert-status alert-danger margin-top';
+      statusBox.innerHTML = `
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <h4>AKI Criteria MET</h4>
+          <p>The patient parameters meet KDIGO criteria for Acute Kidney Injury.</p>
+        </div>
+      `;
     } else {
-      statusBox.className = 'alert-box alert-success margin-top';
-      statusBox.innerHTML = '<strong>✅ No AKI Criteria Met</strong><p>The provided values do not meet KDIGO criteria for Acute Kidney Injury.</p>';
+      statusBox.className = 'alert-status alert-success margin-top';
+      statusBox.innerHTML = `
+        <div class="alert-icon">✅</div>
+        <div>
+          <h4>No AKI Criteria Met</h4>
+          <p>The patient parameters do not meet KDIGO criteria for Acute Kidney Injury.</p>
+        </div>
+      `;
     }
 
     const summaryKDIGO = 
@@ -155,41 +204,58 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
   };
 
   [currCreatInput, baseCreatInput, prevCreatInput, uVolInput, weightInput, durationInput].forEach(el => {
-    el.addEventListener('input', calculateKDIGO);
+    if (el) el.addEventListener('input', calculateKDIGO);
   });
 
   calculateKDIGO();
+
+  document.getElementById('btn-reset-kdigo').addEventListener('click', () => {
+    currCreatInput.value = "1.0";
+    baseCreatInput.value = "1.0";
+    prevCreatInput.value = "1.0";
+    uVolInput.value = "500";
+    weightInput.value = "70";
+    durationInput.value = "12";
+    calculateKDIGO();
+  });
 
   document.getElementById('btn-copy-kdigo').addEventListener('click', () => {
     const text = document.getElementById('kdigo-summary-text').innerText;
     navigator.clipboard.writeText(text);
     const btn = document.getElementById('btn-copy-kdigo');
     btn.innerText = '✅ Copied!';
-    setTimeout(() => btn.innerText = '📋 Copy Summary', 2000);
+    setTimeout(() => btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Text
+    `, 2000);
   });
 
   // =========================================
-  // 3. AI DRUG EXTRACTOR
+  // 3. AI DRUG EXTRACTOR ENGINE
   // =========================================
+  document.getElementById('btn-clear-ai').addEventListener('click', () => {
+    document.getElementById('ai-text-input').value = '';
+    document.getElementById('ai-results-card').style.display = 'none';
+  });
+
   document.getElementById('btn-extract-ai').addEventListener('click', async () => {
     const text = document.getElementById('ai-text-input').value.trim();
     const apiKey = apiKeyInput.value.trim();
 
     if (!text) {
-      alert('Please enter clinical text to analyze.');
+      alert('Please enter clinical note text.');
       return;
     }
 
-    const resultsContainer = document.getElementById('ai-results-container');
-    const loading = document.getElementById('ai-loading');
+    const resultsCard = document.getElementById('ai-results-card');
+    const loadingSpinner = document.getElementById('ai-loading-spinner');
     const tbody = document.getElementById('ai-table-body');
 
-    resultsContainer.style.display = 'block';
-    loading.style.display = 'flex';
+    resultsCard.style.display = 'block';
+    loadingSpinner.style.display = 'flex';
     tbody.innerHTML = '';
 
     try {
-      // Call serverless API endpoint or fallback client-side Gemini request
       let data;
       try {
         const res = await fetch('/api/extract', {
@@ -199,10 +265,9 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
         });
         data = await res.json();
       } catch (err) {
-        // Direct browser fallback if Vercel serverless endpoint isn't present
-        if (!apiKey) throw new Error("Please enter a Gemini API Key in the sidebar settings.");
+        if (!apiKey) throw new Error("Please configure a Gemini API Key in the sidebar.");
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-        const prompt = `Extract all medications from this clinical text and list their likely indications in JSON format array of objects with keys "Detected Drug" and "Related Disease / Indication". Clinical Text: "${text}"`;
+        const prompt = `Extract all medications from this text and map to indications in JSON format array of objects with keys "Detected Drug" and "Related Disease / Indication". Text: "${text}"`;
         const res = await fetch(geminiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -216,38 +281,37 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
         data = { results: JSON.parse(jsonStr) };
       }
 
-      loading.style.display = 'none';
+      loadingSpinner.style.display = 'none';
 
       if (data.error) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color: var(--danger)">Error: ${data.error}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color: var(--accent-rose);">Error: ${data.error}</td></tr>`;
         return;
       }
 
       const items = data.results || [];
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2">No medications detected in text.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color: var(--text-subtle);">No medications detected in text.</td></tr>`;
       } else {
         tbody.innerHTML = items.map(item => `
           <tr>
             <td><strong>💊 ${item['Detected Drug'] || item.drug || 'Unknown'}</strong></td>
-            <td>${item['Related Disease / Indication'] || item.indication || 'General Use'}</td>
+            <td>${item['Related Disease / Indication'] || item.indication || 'General Clinical Use'}</td>
           </tr>
         `).join('');
       }
 
     } catch (error) {
-      loading.style.display = 'none';
-      tbody.innerHTML = `<tr><td colspan="2" style="color: var(--danger)">Failed to process AI extraction: ${error.message}</td></tr>`;
+      loadingSpinner.style.display = 'none';
+      tbody.innerHTML = `<tr><td colspan="2" style="color: var(--accent-rose);">Extraction Failed: ${error.message}</td></tr>`;
     }
   });
 
   // =========================================
-  // 4. TIME INTERVAL CALCULATOR
+  // 4. TIME INTERVAL ENGINE
   // =========================================
   const timeStart = document.getElementById('time-start');
   const timeEnd = document.getElementById('time-end');
 
-  // Set default start (yesterday 08:00) & end (now)
   const now = new Date();
   const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000));
   yesterday.setHours(8, 0, 0, 0);
@@ -257,8 +321,10 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
     return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
   };
 
-  timeStart.value = formatLocalISO(yesterday);
-  timeEnd.value = formatLocalISO(now);
+  if (timeStart && timeEnd) {
+    timeStart.value = formatLocalISO(yesterday);
+    timeEnd.value = formatLocalISO(now);
+  }
 
   const calculateTimeInterval = () => {
     const s = new Date(timeStart.value);
@@ -283,38 +349,42 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
     document.getElementById('time-seconds-display').innerText = `${totalSecs.toLocaleString()} s`;
   };
 
-  timeStart.addEventListener('change', calculateTimeInterval);
-  timeEnd.addEventListener('change', calculateTimeInterval);
-  calculateTimeInterval();
+  if (timeStart && timeEnd) {
+    timeStart.addEventListener('change', calculateTimeInterval);
+    timeEnd.addEventListener('change', calculateTimeInterval);
+    calculateTimeInterval();
+  }
 
   // =========================================
-  // 5. DOCUMENT MANAGER
+  // 5. DOCUMENT MANAGEMENT ENGINE
   // =========================================
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const fileList = document.getElementById('file-list');
   let savedFiles = [];
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = '#38bdf8';
-  });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--accent-cyan)';
+    });
 
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.style.borderColor = 'var(--border-accent)';
-  });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = 'var(--border-accent)';
+    });
 
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = 'var(--border-accent)';
-    handleFiles(e.dataTransfer.files);
-  });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border-accent)';
+      handleFiles(e.dataTransfer.files);
+    });
 
-  fileInput.addEventListener('change', () => {
-    handleFiles(fileInput.files);
-  });
+    fileInput.addEventListener('change', () => {
+      handleFiles(fileInput.files);
+    });
+  }
 
   const handleFiles = (files) => {
     for (let i = 0; i < files.length; i++) {
@@ -325,19 +395,19 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
 
   const renderFileList = () => {
     if (savedFiles.length === 0) {
-      fileList.innerHTML = '<li class="empty-list">No documents uploaded in this session yet.</li>';
+      fileList.innerHTML = '<li class="empty-file-state">📁 No documents uploaded in this session yet.</li>';
       return;
     }
 
     fileList.innerHTML = savedFiles.map((file, idx) => `
-      <li class="file-item">
-        <span>📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
-        <button class="btn btn-danger btn-sm" onclick="deleteFile(${idx})">Delete</button>
+      <li class="file-row">
+        <span>📄 <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
+        <button class="btn-danger-sm" onclick="deleteSessionFile(${idx})">Delete</button>
       </li>
     `).join('');
   };
 
-  window.deleteFile = (idx) => {
+  window.deleteSessionFile = (idx) => {
     savedFiles.splice(idx, 1);
     renderFileList();
   };
