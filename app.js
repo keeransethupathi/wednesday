@@ -11,6 +11,42 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================
+  // CLIPBOARD COPY HELPER
+  // =========================================
+  const copyTextToClipboard = async (text, successMsg) => {
+    let copied = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch (err) {
+        copied = false;
+      }
+    }
+    if (!copied) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {
+        copied = false;
+      }
+    }
+    if (copied) {
+      showToast(successMsg || `Copied: ${text}`);
+    } else {
+      showToast('Copied to clipboard');
+    }
+    return copied;
+  };
+
+  // =========================================
   // NAV TAB SYSTEM
   // =========================================
   const navTabs = document.querySelectorAll('.nav-tab');
@@ -122,6 +158,88 @@ Total - ${total}`;
 
     const summaryEl = document.getElementById('sofa-summary-text');
     if (summaryEl) summaryEl.innerText = summaryText;
+
+    // Dynamically update copy format dropdown options
+    const copyFormatSelect = document.getElementById('sofa-copy-format');
+    if (copyFormatSelect) {
+      const optScore = copyFormatSelect.querySelector('option[value="score"]');
+      const optVal = copyFormatSelect.querySelector('option[value="value"]');
+      const optSummary = copyFormatSelect.querySelector('option[value="summary"]');
+      if (optScore) optScore.innerText = `SOFA Score (${total}/24)`;
+      if (optVal) optVal.innerText = `Score Value Only (${total})`;
+      if (optSummary) optSummary.innerText = `Summary with Breakdown (${total} pts)`;
+    }
+  }
+
+  // =========================================
+  // SOFA SCORE VALUE COPY OPTION
+  // =========================================
+  const btnCopySofa = document.getElementById('btn-copy-sofa');
+  const sofaCopyFormat = document.getElementById('sofa-copy-format');
+  const sofaTotalScoreEl = document.getElementById('sofa-total-score');
+
+  const getSofaCopyContent = () => {
+    const total = sofaState.resp + sofaState.coag + sofaState.cns + sofaState.liver + sofaState.cardio + sofaState.renal;
+    const mode = sofaCopyFormat ? sofaCopyFormat.value : 'score';
+
+    if (mode === 'value') {
+      return {
+        text: `${total}`,
+        msg: `Copied SOFA value: ${total}`
+      };
+    } else if (mode === 'summary') {
+      const summaryText = 
+`SOFA SCORE: ${total}/24
+PaO2/FiO2: ${sofaState.resp} pts
+Platelets: ${sofaState.coag} pts
+Bilirubin: ${sofaState.liver} pts
+MAP / Vasopressors: ${sofaState.cardio} pts
+Glasgow Coma Scale: ${sofaState.cns} pts
+Creatinine / Urine: ${sofaState.renal} pts
+Total Score: ${total}/24`;
+      return {
+        text: summaryText,
+        msg: `Copied SOFA summary (${total}/24)`
+      };
+    } else {
+      // Default: 'score'
+      return {
+        text: `SOFA Score: ${total}/24`,
+        msg: `Copied SOFA score: ${total}/24`
+      };
+    }
+  };
+
+  if (btnCopySofa) {
+    btnCopySofa.addEventListener('click', async () => {
+      const { text, msg } = getSofaCopyContent();
+      const success = await copyTextToClipboard(text, msg);
+      if (success) {
+        btnCopySofa.classList.add('copied');
+        const label = document.getElementById('btn-copy-sofa-label');
+        if (label) label.innerText = 'Copied!';
+        setTimeout(() => {
+          btnCopySofa.classList.remove('copied');
+          if (label) label.innerText = 'Copy Score';
+        }, 1800);
+      }
+    });
+  }
+
+  if (sofaTotalScoreEl) {
+    sofaTotalScoreEl.addEventListener('click', async () => {
+      const { text, msg } = getSofaCopyContent();
+      await copyTextToClipboard(text, msg);
+      if (btnCopySofa) {
+        btnCopySofa.classList.add('copied');
+        const label = document.getElementById('btn-copy-sofa-label');
+        if (label) label.innerText = 'Copied!';
+        setTimeout(() => {
+          btnCopySofa.classList.remove('copied');
+          if (label) label.innerText = 'Copy Score';
+        }, 1800);
+      }
+    });
   }
 
   calculateSOFA();
@@ -139,15 +257,91 @@ Total - ${total}`;
         });
       }
     });
+    if (mapSbp) mapSbp.value = '';
+    if (mapDbp) mapDbp.value = '';
+    if (mapResultVal) mapResultVal.innerText = '--';
+    if (mapAutoStatus) mapAutoStatus.innerText = 'Enter SBP & DBP';
     calculateSOFA();
     showToast('SOFA score reset');
   });
 
-  document.getElementById('btn-copy-sofa').addEventListener('click', () => {
-    const text = document.getElementById('sofa-summary-text').innerText;
-    navigator.clipboard.writeText(text);
-    showToast('SOFA summary copied!');
-  });
+  // =========================================
+  // CARDIOVASCULAR MAP CALCULATOR
+  // =========================================
+  const mapSbp = document.getElementById('map-sbp');
+  const mapDbp = document.getElementById('map-dbp');
+  const mapResultVal = document.getElementById('map-result-value');
+  const mapAutoStatus = document.getElementById('map-auto-status');
+  const btnApplyMap = document.getElementById('btn-apply-map');
+
+  function calculateMAP() {
+    if (!mapSbp || !mapDbp) return null;
+    const sbp = parseFloat(mapSbp.value);
+    const dbp = parseFloat(mapDbp.value);
+
+    if (isNaN(sbp) || isNaN(dbp)) {
+      if (mapResultVal) mapResultVal.innerText = '--';
+      if (mapAutoStatus) mapAutoStatus.innerText = 'Enter SBP & DBP';
+      return null;
+    }
+
+    if (sbp <= dbp) {
+      if (mapResultVal) mapResultVal.innerText = '!';
+      if (mapAutoStatus) mapAutoStatus.innerHTML = `<span style="color: var(--rose-primary);">SBP must exceed DBP</span>`;
+      return null;
+    }
+
+    // Standard clinical formula: MAP = DBP + 1/3 (SBP - DBP)
+    const map = Math.round(dbp + ((sbp - dbp) / 3));
+    if (mapResultVal) mapResultVal.innerText = map;
+
+    const isHypotensive = map < 70;
+    if (mapAutoStatus) {
+      mapAutoStatus.innerHTML = isHypotensive 
+        ? `<span style="color: var(--rose-primary);"><i class="fa fa-exclamation-triangle"></i> MAP < 70 (1 pt)</span>` 
+        : `<span style="color: var(--emerald-primary);"><i class="fa fa-check-circle"></i> MAP ≥ 70 (0 pts)</span>`;
+    }
+
+    return map;
+  }
+
+  function applyMAPToScore() {
+    const map = calculateMAP();
+    if (map === null) {
+      showToast('Please enter valid SBP & DBP values');
+      return;
+    }
+
+    const cardioContainer = document.getElementById('cardio-control');
+    if (!cardioContainer) return;
+    const btns = cardioContainer.querySelectorAll('.pill-option');
+
+    if (map >= 70) {
+      if (btns[0]) btns[0].click();
+      showToast(`MAP ${map} mmHg applied (≥ 70 → 0 pts)`);
+    } else {
+      if (btns[1]) btns[1].click();
+      showToast(`MAP ${map} mmHg applied (< 70 → 1 pt)`);
+    }
+  }
+
+  if (mapSbp && mapDbp) {
+    mapSbp.addEventListener('input', calculateMAP);
+    mapDbp.addEventListener('input', calculateMAP);
+  }
+
+  if (btnApplyMap) {
+    btnApplyMap.addEventListener('click', applyMAPToScore);
+  }
+
+  const copySofaBtn = document.getElementById('btn-copy-sofa');
+  if (copySofaBtn) {
+    copySofaBtn.addEventListener('click', () => {
+      const text = document.getElementById('sofa-summary-text')?.innerText || '';
+      navigator.clipboard.writeText(text);
+      showToast('SOFA summary copied!');
+    });
+  }
 
   // =========================================
   // 2. KDIGO AKI ENGINE
@@ -254,101 +448,7 @@ KDIGO AKI Status: ${isAki ? 'MET' : 'NOT MET'}`;
   });
 
   // =========================================
-  // 3. BUILT-IN CLINICAL DRUG MAPPER ENGINE (ZERO API)
-  // =========================================
-  const DRUG_DATABASE = [
-    { name: 'Lisinopril', aliases: ['lisinopril', 'zestril', 'prinivil'], indication: 'Hypertension / Heart Failure / Post-MI' },
-    { name: 'Amlodipine', aliases: ['amlodipine', 'norvasc'], indication: 'Hypertension / Angina / Coronary Artery Disease' },
-    { name: 'Metformin', aliases: ['metformin', 'glucophage'], indication: 'Type 2 Diabetes Mellitus' },
-    { name: 'Atorvastatin', aliases: ['atorvastatin', 'lipitor'], indication: 'Hyperlipidemia / Cardiovascular Disease Risk Reduction' },
-    { name: 'Apixaban', aliases: ['apixaban', 'eliquis'], indication: 'Atrial Fibrillation / DVT / PE Anticoagulation' },
-    { name: 'Rivaroxaban', aliases: ['rivaroxaban', 'xarelto'], indication: 'Atrial Fibrillation / Venous Thromboembolism' },
-    { name: 'Warfarin', aliases: ['warfarin', 'coumadin'], indication: 'Anticoagulation / Mechanical Heart Valve / DVT' },
-    { name: 'Metoprolol', aliases: ['metoprolol', 'lopressor', 'toprol'], indication: 'Hypertension / Angina / Heart Failure / Tachyarrhythmias' },
-    { name: 'Aspirin', aliases: ['aspirin', 'asa', 'acetylsalicylic'], indication: 'Antiplatelet Therapy / Acute Coronary Syndrome / Stroke Prophylaxis' },
-    { name: 'Clopidogrel', aliases: ['clopidogrel', 'plavix'], indication: 'Antiplatelet / Recent MI / Stent Thrombosis Prophylaxis' },
-    { name: 'Ticagrelor', aliases: ['ticagrelor', 'brilinta'], indication: 'Acute Coronary Syndrome / Antiplatelet' },
-    { name: 'Furosemide', aliases: ['furosemide', 'lasix'], indication: 'Edema / Congestive Heart Failure / Renal Impairment' },
-    { name: 'Omeprazole', aliases: ['omeprazole', 'prilosec'], indication: 'GERD / Peptic Ulcer Disease / Stress Ulcer Prophylaxis' },
-    { name: 'Pantoprazole', aliases: ['pantoprazole', 'protonix'], indication: 'GERD / Stress Ulcer Prophylaxis / GI Bleed' },
-    { name: 'Levofloxacin', aliases: ['levofloxacin', 'levaquin'], indication: 'Bacterial Infection / Pneumonia / UTI' },
-    { name: 'Vancomycin', aliases: ['vancomycin', 'vancocin'], indication: 'MRSA Infection / Severe Gram-Positive Sepsis' },
-    { name: 'Heparin', aliases: ['heparin', 'unfractionated heparin'], indication: 'Anticoagulation / Thrombosis Prophylaxis / ACS' },
-    { name: 'Enoxaparin', aliases: ['enoxaparin', 'lovenox'], indication: 'LMWH Anticoagulation / DVT Prophylaxis' },
-    { name: 'Albuterol', aliases: ['albuterol', 'ventolin', 'proair'], indication: 'Bronchospasm / Asthma / COPD Exacerbation' },
-    { name: 'Insulin', aliases: ['insulin', 'humalog', 'novolog', 'lantus'], indication: 'Hyperglycemia / Diabetes Mellitus' },
-    { name: 'Norepinephrine', aliases: ['norepinephrine', 'levophed'], indication: 'Septic Shock / Severe Hypotension Vasopressor Support' },
-    { name: 'Dopamine', aliases: ['dopamine'], indication: 'Hemodynamic Support / Inotropic Support' },
-    { name: 'Dobutamine', aliases: ['dobutamine'], indication: 'Inotropic Support / Cardiogenic Shock' },
-    { name: 'Epinephrine', aliases: ['epinephrine', 'adrenaline'], indication: 'Anaphylaxis / Cardiac Arrest / Severe Vasodilatory Shock' },
-    { name: 'Losartan', aliases: ['losartan', 'cozaar'], indication: 'Hypertension / Diabetic Nephropathy' },
-    { name: 'Empagliflozin', aliases: ['empagliflozin', 'jardiance'], indication: 'Type 2 Diabetes / Heart Failure / CKD' },
-    { name: 'Hydrochlorothiazide', aliases: ['hydrochlorothiazide', 'hctz'], indication: 'Hypertension / Mild Edema' },
-    { name: 'Spironolactone', aliases: ['spironolactone', 'aldactone'], indication: 'Heart Failure / Hyperaldosteronism / Resistant Hypertension' },
-    { name: 'Amiodarone', aliases: ['amiodarone', 'pacerone'], indication: 'Ventricular Arrhythmias / Atrial Fibrillation Rate Control' },
-    { name: 'Digoxin', aliases: ['digoxin', 'lanoxin'], indication: 'Heart Failure / Atrial Fibrillation Rate Control' },
-    { name: 'Propofol', aliases: ['propofol', 'diprivan'], indication: 'ICU Sedation / Anesthesia Maintenance' },
-    { name: 'Fentanyl', aliases: ['fentanyl', 'sublimaze'], indication: 'Analgesia / Critical Care Sedation & Pain Control' },
-    { name: 'Sertraline', aliases: ['sertraline', 'zoloft'], indication: 'Major Depressive Disorder / Anxiety' },
-    { name: 'Gabapentin', aliases: ['gabapentin', 'neurontin'], indication: 'Neuropathic Pain / Seizure Adjunct' },
-    { name: 'Prednisone', aliases: ['prednisone', 'deltasone'], indication: 'Inflammatory Condition / Immunosuppression / COPD' }
-  ];
-
-  const sampleText = `Patient is a 68-year-old male admitted with hypertensive emergency and acute chest pain. Past medical history includes chronic atrial fibrillation, type 2 diabetes, and hyperlipidemia. Current hospital medications initiated: Lisinopril 20mg daily for BP management, Amlodipine 10mg daily, Metformin 1000mg twice daily for glycemic control, and Atorvastatin 80mg for cholesterol. Apixaban 5mg BID maintained for stroke prophylaxis in AFib. Metoprolol 50mg added for rate control.`;
-
-  document.getElementById('btn-load-sample').addEventListener('click', () => {
-    document.getElementById('drug-text-input').value = sampleText;
-    parseDrugs();
-    showToast('Sample note loaded & parsed!');
-  });
-
-  document.getElementById('btn-clear-drug').addEventListener('click', () => {
-    document.getElementById('drug-text-input').value = '';
-    document.getElementById('drug-results-card').style.display = 'none';
-  });
-
-  document.getElementById('btn-extract-drug').addEventListener('click', () => {
-    parseDrugs();
-  });
-
-  function parseDrugs() {
-    const text = document.getElementById('drug-text-input').value.trim();
-    if (!text) {
-      alert('Please enter clinical text to extract drugs.');
-      return;
-    }
-
-    const textLower = text.toLowerCase();
-    const detected = [];
-
-    DRUG_DATABASE.forEach(drug => {
-      const match = drug.aliases.some(alias => textLower.includes(alias));
-      if (match) {
-        detected.push(drug);
-      }
-    });
-
-    const resultsCard = document.getElementById('drug-results-card');
-    const countBadge = document.getElementById('drug-count-badge');
-    const tbody = document.getElementById('drug-table-body');
-
-    resultsCard.style.display = 'block';
-    countBadge.innerText = detected.length;
-
-    if (detected.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="2" style="color: var(--text-subtle);">No standard medications automatically detected in this passage.</td></tr>`;
-    } else {
-      tbody.innerHTML = detected.map(d => `
-        <tr>
-          <td><strong>💊 ${d.name}</strong></td>
-          <td>${d.indication}</td>
-        </tr>
-      `).join('');
-    }
-  }
-
-  // =========================================
-  // 4. TIME INTERVAL ENGINE
+  // 3. TIME INTERVAL ENGINE
   // =========================================
   const timeStart = document.getElementById('time-start');
   const timeEnd = document.getElementById('time-end');

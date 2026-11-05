@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.env*
+!.env.example
+__pycache__/
+*.pyc
+
+# Vercel & Deployment artifacts
+.vercel/
+dist/
+build/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
